@@ -1,0 +1,7 @@
+# Terminal 1 (Backend)
+cd d:\Tracker\backend\TrackerAPI
+dotnet run --launch-profile http
+
+# Terminal 2 (Frontend)  
+cd d:\Tracker\frontend
+npm run dev
