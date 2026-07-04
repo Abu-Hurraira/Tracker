@@ -157,3 +157,4 @@ D:\Tracker\backend\TrackerAPI\obj\Debug\net9.0\refint\TrackerAPI.dll
 D:\Tracker\backend\TrackerAPI\obj\Debug\net9.0\TrackerAPI.pdb
 D:\Tracker\backend\TrackerAPI\obj\Debug\net9.0\TrackerAPI.genruntimeconfig.cache
 D:\Tracker\backend\TrackerAPI\obj\Debug\net9.0\ref\TrackerAPI.dll
+D:\Tracker\backend\trackerapi\obj\Debug\net9.0\TrackerAPI.sourcelink.json

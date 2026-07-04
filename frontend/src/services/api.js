@@ -31,11 +31,13 @@ export const authApi = {
   me: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/profile', data),
   changePassword: (data) => api.put('/auth/change-password', data),
+  uploadProfilePicture: (base64) => api.put('/auth/profile', { profilePicture: base64 }),
 };
 
 // ─── Transactions ───
 export const transactionApi = {
   getAll: (month, year) => api.get('/transactions', { params: { month, year } }),
+  getAllForExport: () => api.get('/transactions'),
   create: (data) => api.post('/transactions', data),
   update: (id, data) => api.put(`/transactions/${id}`, data),
   delete: (id) => api.delete(`/transactions/${id}`),

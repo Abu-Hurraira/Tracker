@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../services/api';
@@ -20,9 +20,12 @@ export default function Profile() {
   const [username, setUsername] = useState(user?.username || '');
   const [currency, setCurrency] = useState(user?.currency || 'PKR');
   const [avatarColor, setAvatarColor] = useState(user?.avatarColor || '#6C63FF');
+  const [profilePicture, setProfilePicture] = useState(user?.profilePicture || null);
   const [loading, setLoading] = useState(false);
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
   const [pwLoading, setPwLoading] = useState(false);
+  const [picUploading, setPicUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const selectedCurrency = CURRENCIES.find(c => c.code === currency) || CURRENCIES[0];
 
@@ -50,6 +53,57 @@ export default function Profile() {
     finally { setPwLoading(false); }
   };
 
+  const handlePictureChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image must be under 2MB');
+      return;
+    }
+
+    setPicUploading(true);
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64 = reader.result;
+      setProfilePicture(base64);
+      try {
+        const res = await authApi.uploadProfilePicture(base64);
+        updateUser(res.data);
+        toast.success('Profile picture updated!');
+      } catch {
+        toast.error('Failed to save profile picture');
+        setProfilePicture(user?.profilePicture || null);
+      } finally {
+        setPicUploading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePicture = async () => {
+    if (!profilePicture) return;
+    setPicUploading(true);
+    try {
+      // We send empty string to signal removal — backend treats null/empty as "remove"
+      const res = await authApi.updateProfile({ profilePicture: '' });
+      updateUser(res.data);
+      setProfilePicture(null);
+      toast.success('Profile picture removed');
+    } catch {
+      toast.error('Failed to remove profile picture');
+    } finally {
+      setPicUploading(false);
+    }
+  };
+
   const initials = username?.slice(0, 2).toUpperCase() || 'U';
 
   return (
@@ -58,10 +112,94 @@ export default function Profile() {
 
       {/* Avatar Preview */}
       <motion.div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
-        <div style={{ width: 90, height: 90, borderRadius: '50%', background: avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, fontWeight: 800, color: 'white', boxShadow: `0 8px 24px ${avatarColor}60` }}>
-          {initials}
+        <div style={{ position: 'relative', display: 'inline-block' }}>
+          {/* Avatar Circle */}
+          <div style={{
+            width: 100,
+            height: 100,
+            borderRadius: '50%',
+            background: profilePicture ? 'transparent' : avatarColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 36,
+            fontWeight: 800,
+            color: 'white',
+            boxShadow: `0 8px 24px ${avatarColor}60`,
+            overflow: 'hidden',
+            border: `3px solid ${avatarColor}`,
+            cursor: 'pointer',
+            position: 'relative',
+          }}
+            onClick={() => fileInputRef.current?.click()}
+            title="Click to change profile picture"
+          >
+            {profilePicture
+              ? <img src={profilePicture} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : initials
+            }
+
+            {/* Hover overlay */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'rgba(0,0,0,0.45)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              opacity: 0,
+              transition: 'opacity 0.2s',
+              fontSize: 22,
+            }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '0'}
+            >
+              {picUploading ? <span className="spinner" style={{ width: 22, height: 22, borderWidth: 2.5 }} /> : '📷'}
+            </div>
+          </div>
+
+          {/* Remove picture button */}
+          {profilePicture && (
+            <button
+              onClick={handleRemovePicture}
+              style={{
+                position: 'absolute',
+                top: 0,
+                right: -8,
+                width: 26,
+                height: 26,
+                borderRadius: '50%',
+                background: 'var(--accent-red)',
+                border: '2px solid var(--bg-main)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                color: 'white',
+                fontWeight: 700,
+              }}
+              title="Remove profile picture"
+            >
+              ✕
+            </button>
+          )}
         </div>
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={handlePictureChange}
+        />
       </motion.div>
+
+      {/* Upload hint */}
+      <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)', marginBottom: 24, marginTop: -16 }}>
+        Click the avatar to upload a photo · Max 2MB
+      </div>
 
       {/* Profile Form */}
       <motion.div className="card" style={{ marginBottom: 20 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>

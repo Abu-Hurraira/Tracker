@@ -6,8 +6,8 @@ public record LoginDto(string Email, string Password);
 public record AuthResponseDto(string Token, UserDto User);
 
 // User
-public record UserDto(int Id, string Username, string Email, string Currency, string CurrencySymbol, string? AvatarColor, string Theme, DateTime CreatedAt);
-public record UpdateProfileDto(string? Username, string? Currency, string? CurrencySymbol, string? AvatarColor, string? Theme);
+public record UserDto(int Id, string Username, string Email, string Currency, string CurrencySymbol, string? AvatarColor, string Theme, DateTime CreatedAt, string? ProfilePicture);
+public record UpdateProfileDto(string? Username, string? Currency, string? CurrencySymbol, string? AvatarColor, string? Theme, string? ProfilePicture);
 public record ChangePasswordDto(string CurrentPassword, string NewPassword);
 
 // Category

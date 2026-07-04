@@ -3,6 +3,8 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import * as XLSX from 'xlsx';
+import { transactionApi } from '../services/api';
 
 function SettingRow({ icon, title, desc, control }) {
   return (
@@ -38,8 +40,117 @@ export default function Settings() {
     navigate('/login');
   };
 
-  const handleExport = () => {
-    toast('Export feature: You can export data via your SQL Server database directly.', { icon: '📋', duration: 4000 });
+  const handleExport = async () => {
+    const toastId = toast.loading('Preparing your Excel file...');
+    try {
+      const res = await transactionApi.getAllForExport();
+      const transactions = res.data;
+
+      if (transactions.length === 0) {
+        toast.dismiss(toastId);
+        toast('No transactions to export.', { icon: '📭' });
+        return;
+      }
+
+      const sym = user?.currencySymbol || 'Rs';
+      const fmtDate = (d) => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const fmtAmt = (t) => `${t.type === 'expense' ? '-' : '+'}${sym}${Number(t.amount).toLocaleString()}`;
+
+      // ── Sheet 1: Summary ──────────────────────────────────────────────
+      const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+      const totalExpense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+      const net = totalIncome - totalExpense;
+
+      const summaryData = [
+        ['FINANCIAL SUMMARY REPORT'],
+        ['Generated on:', new Date().toLocaleString()],
+        ['User:', user?.username || ''],
+        ['Currency:', `${sym} (${user?.currency || 'PKR'})`],
+        [],
+        ['Metric', 'Amount'],
+        ['Total Income', `${sym}${totalIncome.toLocaleString()}`],
+        ['Total Expenses', `${sym}${totalExpense.toLocaleString()}`],
+        ['Net Balance', `${net >= 0 ? '+' : ''}${sym}${Math.abs(net).toLocaleString()}`],
+        ['Total Transactions', transactions.length],
+        ['Income Transactions', transactions.filter(t => t.type === 'income').length],
+        ['Expense Transactions', transactions.filter(t => t.type === 'expense').length],
+      ];
+
+      // ── Sheet 2: All Transactions ─────────────────────────────────────
+      const txHeaders = ['#', 'Date', 'Title', 'Type', 'Amount', 'Category', 'Account', 'Note'];
+      const txRows = transactions.map((t, i) => [
+        i + 1,
+        fmtDate(t.date),
+        t.title || t.category?.name || 'Transaction',
+        t.type.charAt(0).toUpperCase() + t.type.slice(1),
+        fmtAmt(t),
+        `${t.category?.icon || ''} ${t.category?.name || 'Uncategorized'}`.trim(),
+        `${t.account?.icon || ''} ${t.account?.name || 'N/A'}`.trim(),
+        t.note || '',
+      ]);
+
+      // ── Sheet 3: Income only ──────────────────────────────────────────
+      const incomeRows = transactions
+        .filter(t => t.type === 'income')
+        .map((t, i) => [
+          i + 1,
+          fmtDate(t.date),
+          t.title || t.category?.name || 'Income',
+          `${sym}${Number(t.amount).toLocaleString()}`,
+          `${t.category?.icon || ''} ${t.category?.name || 'Uncategorized'}`.trim(),
+          `${t.account?.icon || ''} ${t.account?.name || 'N/A'}`.trim(),
+          t.note || '',
+        ]);
+
+      // ── Sheet 4: Expenses only ────────────────────────────────────────
+      const expenseRows = transactions
+        .filter(t => t.type === 'expense')
+        .map((t, i) => [
+          i + 1,
+          fmtDate(t.date),
+          t.title || t.category?.name || 'Expense',
+          `${sym}${Number(t.amount).toLocaleString()}`,
+          `${t.category?.icon || ''} ${t.category?.name || 'Uncategorized'}`.trim(),
+          `${t.account?.icon || ''} ${t.account?.name || 'N/A'}`.trim(),
+          t.note || '',
+        ]);
+
+      // ── Build workbook ────────────────────────────────────────────────
+      const wb = XLSX.utils.book_new();
+
+      // Summary sheet
+      const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+      wsSummary['!cols'] = [{ wch: 22 }, { wch: 28 }];
+      XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+      // All Transactions sheet
+      const wsAll = XLSX.utils.aoa_to_sheet([txHeaders, ...txRows]);
+      wsAll['!cols'] = [{ wch: 4 }, { wch: 14 }, { wch: 26 }, { wch: 10 }, { wch: 14 }, { wch: 22 }, { wch: 20 }, { wch: 30 }];
+      XLSX.utils.book_append_sheet(wb, wsAll, 'All Transactions');
+
+      // Income sheet
+      const incomeHdr = ['#', 'Date', 'Title', 'Amount', 'Category', 'Account', 'Note'];
+      const wsIncome = XLSX.utils.aoa_to_sheet([incomeHdr, ...incomeRows]);
+      wsIncome['!cols'] = [{ wch: 4 }, { wch: 14 }, { wch: 26 }, { wch: 14 }, { wch: 22 }, { wch: 20 }, { wch: 30 }];
+      XLSX.utils.book_append_sheet(wb, wsIncome, 'Income');
+
+      // Expenses sheet
+      const expHdr = ['#', 'Date', 'Title', 'Amount', 'Category', 'Account', 'Note'];
+      const wsExpense = XLSX.utils.aoa_to_sheet([expHdr, ...expenseRows]);
+      wsExpense['!cols'] = [{ wch: 4 }, { wch: 14 }, { wch: 26 }, { wch: 14 }, { wch: 22 }, { wch: 20 }, { wch: 30 }];
+      XLSX.utils.book_append_sheet(wb, wsExpense, 'Expenses');
+
+      // Download
+      const fileName = `Tracker_Export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+
+      toast.dismiss(toastId);
+      toast.success(`Exported ${transactions.length} transactions to Excel!`);
+    } catch (err) {
+      toast.dismiss(toastId);
+      toast.error('Export failed. Please try again.');
+      console.error(err);
+    }
   };
 
   const handleClearCache = () => {

@@ -83,6 +83,7 @@ public class AuthController : ControllerBase
         if (dto.CurrencySymbol != null) user.CurrencySymbol = dto.CurrencySymbol;
         if (dto.AvatarColor != null) user.AvatarColor = dto.AvatarColor;
         if (dto.Theme != null) user.Theme = dto.Theme;
+        if (dto.ProfilePicture != null) user.ProfilePicture = dto.ProfilePicture == "" ? null : dto.ProfilePicture;
 
         await _db.SaveChangesAsync();
         return Ok(ToDto(user));
@@ -107,7 +108,7 @@ public class AuthController : ControllerBase
         int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
 
     private static UserDto ToDto(User u) =>
-        new(u.Id, u.Username, u.Email, u.Currency, u.CurrencySymbol, u.AvatarColor, u.Theme, u.CreatedAt);
+        new(u.Id, u.Username, u.Email, u.Currency, u.CurrencySymbol, u.AvatarColor, u.Theme, u.CreatedAt, u.ProfilePicture);
 
     private static List<Category> GetDefaultCategories(int userId) => new()
     {

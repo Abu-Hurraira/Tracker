@@ -31,11 +31,14 @@ export default function Topbar() {
       <div className="topbar-actions">
         <div
           className="avatar"
-          style={{ background: user?.avatarColor || '#6C63FF' }}
+          style={{ background: user?.avatarColor || '#6C63FF', overflow: 'hidden', padding: 0 }}
           onClick={() => navigate('/app/profile')}
           title="Profile"
         >
-          {initials}
+          {user?.profilePicture
+            ? <img src={user.profilePicture} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+            : initials
+          }
         </div>
       </div>
     </header>

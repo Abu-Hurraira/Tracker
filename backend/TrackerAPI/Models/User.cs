@@ -15,6 +15,7 @@ public class User
     public string Currency { get; set; } = "PKR";
     public string CurrencySymbol { get; set; } = "Rs";
     public string? AvatarColor { get; set; } = "#6C63FF";
+    public string? ProfilePicture { get; set; }
     public string Theme { get; set; } = "light";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Tracker\\backend\\TrackerAPI\\TrackerAPI.csproj": {}
+    "D:\\Tracker\\backend\\trackerapi\\TrackerAPI.csproj": {}
   },
   "projects": {
-    "D:\\Tracker\\backend\\TrackerAPI\\TrackerAPI.csproj": {
+    "D:\\Tracker\\backend\\trackerapi\\TrackerAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Tracker\\backend\\TrackerAPI\\TrackerAPI.csproj",
+        "projectUniqueName": "D:\\Tracker\\backend\\trackerapi\\TrackerAPI.csproj",
         "projectName": "TrackerAPI",
-        "projectPath": "D:\\Tracker\\backend\\TrackerAPI\\TrackerAPI.csproj",
+        "projectPath": "D:\\Tracker\\backend\\trackerapi\\TrackerAPI.csproj",
         "packagesPath": "C:\\Users\\hp\\.nuget\\packages\\",
-        "outputPath": "D:\\Tracker\\backend\\TrackerAPI\\obj\\",
+        "outputPath": "D:\\Tracker\\backend\\trackerapi\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
