@@ -3,7 +3,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { categoryApi } from '../services/api';
 import toast from 'react-hot-toast';
 
-const ICONS = ['🍔','🛒','🚌','🛍️','📄','💊','🎬','📚','🎁','💵','💻','🏢','📈','💰','🏦','☕','🍕','🎮','✈️','🏠','💡','🎓','🎵','🎭','🏋️','🌸','🚗','🐾','💈','🛠️'];
+const ICONS = [
+  // Finance & Money
+  '💰','🏦','💵','💳','📈','🪙','💼','📊',
+  // Food & Dining
+  '🍔','🍕','☕','🍣','🍩','🍎','🍦','🍺','🍷','🍽️',
+  // Transportation & Travel
+  '🚗','🚌','✈️','🚲','🚕','⛽','🚆','🎫','🏨','🏖️',
+  // Shopping & Goods
+  '🛒','🛍️','🎁','👗','👕','👟','💄','💍','👓',
+  // Utilities & Bills
+  '🏠','💡','🔌','💧','📶','📱','📄','🛡️','✉️','🔧',
+  // Entertainment & Hobby
+  '🎬','🎮','🎵','🎭','🏋️','🎨','📸','🎤','🍿','🎳','⛳',
+  // Health & Care
+  '💊','🏥','🦷','🩹','🩺','💈','💅','🐾','🌸','👶',
+  // Education & Work
+  '📚','🎓','💻','🏢','⚖️','🛠️','🔬','✏️','📒'
+];
 const COLORS = ['#FF6B6B','#6C63FF','#4CAF7D','#FF9800','#2196F3','#E91E63','#9C27B0','#00BCD4','#8BC34A','#607D8B','#FF5722','#795548'];
 
 function CatModal({ open, onClose, onSaved, edit }) {
@@ -52,7 +69,7 @@ function CatModal({ open, onClose, onSaved, edit }) {
             </div>
             <div className="form-group">
               <label className="form-label">Icon</label>
-              <div className="emoji-grid" style={{ maxHeight: 130, overflowY: 'auto' }}>
+              <div className="emoji-grid" style={{ maxHeight: 240, overflowY: 'auto' }}>
                 {ICONS.map(ic => (
                   <button type="button" key={ic} className={`emoji-btn ${icon === ic ? 'selected' : ''}`} onClick={() => setIcon(ic)}>{ic}</button>
                 ))}

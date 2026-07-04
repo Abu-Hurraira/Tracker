@@ -13,7 +13,7 @@ const PAGE_TITLES = {
   '/app/settings': 'Settings',
 };
 
-export default function Topbar() {
+export default function Topbar({ onToggleSidebar }) {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -25,9 +25,21 @@ export default function Topbar() {
 
   return (
     <header className="topbar">
-      <div>
-        <div className="topbar-title">{title}</div>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{greeting}, {user?.username || 'Hurriara'}! 👋</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {/* Hamburger Menu Icon (3 lines) for mobile */}
+        <button 
+          className="topbar-menu-btn" 
+          onClick={onToggleSidebar}
+          aria-label="Toggle navigation menu"
+        >
+          <div className="menu-bar" />
+          <div className="menu-bar" />
+          <div className="menu-bar" />
+        </button>
+        <div>
+          <div className="topbar-title">{title}</div>
+          <div className="topbar-greeting" style={{ fontSize: 12, color: 'var(--text-muted)' }}>{greeting}, {user?.username || 'Hurriara'}! 👋</div>
+        </div>
       </div>
 
       {/* Search Input in the center */}

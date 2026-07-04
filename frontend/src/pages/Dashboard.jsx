@@ -345,6 +345,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, x: -20 }} 
           animate={{ opacity: 1, x: 0 }} 
           transition={{ delay: 0.1 }}
+          style={{ minHeight: 462, display: 'flex', flexDirection: 'column' }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div className="section-title" style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Accounts</div>
@@ -356,21 +357,106 @@ export default function Dashboard() {
               <p style={{ fontSize: 14 }}>No accounts yet</p>
             </div>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
             {data?.accounts?.map(a => (
-              <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
-                <div className="cat-icon" style={{ background: (a.color || '#5F5AF6') + '15', color: a.color || '#5F5AF6', fontSize: 18, borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {a.icon || '🏦'}
+              <div 
+                key={a.id} 
+                className="dashboard-account-card"
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  padding: '16px 20px', 
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '20px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  cursor: 'pointer'
+                }}
+                onClick={() => navigate('/app/accounts')}
+              >
+                {/* Left Info: Icon, Name, Type, Verified badge */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, zIndex: 1 }}>
+                  {/* Icon with double-circle wrapper */}
+                  <div style={{ 
+                    width: 56, 
+                    height: 56, 
+                    borderRadius: '50%', 
+                    border: '1.5px solid rgba(var(--primary-rgb), 0.15)', 
+                    background: 'rgba(var(--primary-rgb), 0.03)',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <div style={{ 
+                      width: 40, 
+                      height: 40, 
+                      borderRadius: '50%', 
+                      background: 'var(--bg-card)', 
+                      boxShadow: '0 4px 10px rgba(0, 0, 0, 0.05)',
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      fontSize: 18
+                    }}>
+                      {a.icon || '🏦'}
+                    </div>
+                  </div>
+
+                  {/* Texts */}
+                  <div style={{ textAlign: 'left' }}>
+                    <div style={{ fontWeight: 800, fontSize: 16, color: 'var(--text-primary)' }}>{a.name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', textTransform: 'capitalize', marginTop: 2 }}>{a.type}</div>
+                    
+                    {/* Verified Account Pill */}
+                    <div style={{ 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: 4, 
+                      background: 'rgba(16, 185, 129, 0.08)', 
+                      color: '#10b981', 
+                      padding: '3px 10px', 
+                      borderRadius: '100px', 
+                      fontSize: 10, 
+                      fontWeight: 700,
+                      marginTop: 6
+                    }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <polyline points="9 11 11 13 15 9"/>
+                      </svg>
+                      Verified Account
+                    </div>
+                  </div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>{a.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'capitalize', marginTop: 2 }}>{a.type}</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontWeight: 700, fontSize: 14, color: a.balance >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }}>
-                    {sym}{a.balance?.toLocaleString()}
-                  </span>
-                  <FiChevronRight style={{ color: 'var(--text-muted)', fontSize: 15 }} />
+
+                {/* Right Info: Balance and Action button */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, zIndex: 1 }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Available Balance
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: 18, color: '#10b981', marginTop: 2 }}>
+                      {sym}{a.balance?.toLocaleString()}
+                    </div>
+                  </div>
+                  
+                  {/* Rounded Arrow Button */}
+                  <div style={{ 
+                    width: 32, 
+                    height: 32, 
+                    borderRadius: '50%', 
+                    background: 'var(--bg-input)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)'
+                  }}>
+                    <FiChevronRight style={{ color: 'var(--primary)', fontSize: 16 }} />
+                  </div>
                 </div>
               </div>
             ))}
@@ -383,6 +469,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, x: 20 }} 
           animate={{ opacity: 1, x: 0 }} 
           transition={{ delay: 0.2 }}
+          style={{ minHeight: 462, display: 'flex', flexDirection: 'column' }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div className="section-title" style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Recent Transactions</div>
@@ -394,7 +481,7 @@ export default function Dashboard() {
               <p style={{ fontSize: 14 }}>No transactions yet</p>
             </div>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
             {data?.recentTransactions?.map(t => (
               <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
                 <div className="cat-icon" style={{ background: (t.category?.color || '#5F5AF6') + '15', fontSize: 18, borderRadius: '12px', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

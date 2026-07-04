@@ -18,12 +18,15 @@ export default function Landing() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="landing" style={{ background: theme === 'dark' ? 'var(--bg)' : 'linear-gradient(180deg, #F0F2FF 0%, #FFFFFF 50%, #F0F2FF 100%)' }}>
+    <div className="landing" style={{ background: theme === 'dark' ? 'var(--bg)' : 'linear-gradient(180deg, #e6fdf4 0%, #FFFFFF 50%, #e6fdf4 100%)' }}>
       {/* Navbar */}
       <nav className="landing-nav">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #6C63FF, #5A52D5)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>💰</div>
-          <span style={{ fontSize: 20, fontWeight: 800, background: 'linear-gradient(135deg, #6C63FF, #5A52D5)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Tracker</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="36" height="36" style={{ flexShrink: 0 }}>
+            <circle cx="20" cy="20" r="16" fill="none" stroke="var(--primary)" strokeWidth="2.5" style={{ filter: 'drop-shadow(0px 0px 4px var(--primary))' }} />
+            <path d="M15,15 L25,15 L25,25 Z" fill="var(--primary)" />
+          </svg>
+          <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)' }}>CarryUp</span>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <button onClick={toggleTheme} className="btn btn-ghost btn-icon" title="Toggle theme" style={{ fontSize: 18 }}>
@@ -39,7 +42,7 @@ export default function Landing() {
         <div className="landing-hero-bg" />
         {/* Floating orbs */}
         <motion.div
-          style={{ position: 'absolute', top: 80, left: '10%', width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(108,99,255,0.15) 0%, transparent 70%)', pointerEvents: 'none' }}
+          style={{ position: 'absolute', top: 80, left: '10%', width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(var(--primary-rgb),0.15) 0%, transparent 70%)', pointerEvents: 'none' }}
           animate={{ y: [0, -20, 0], scale: [1, 1.05, 1] }}
           transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -51,10 +54,10 @@ export default function Landing() {
 
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--primary-light)', border: '1px solid var(--border)', borderRadius: 100, padding: '6px 16px', fontSize: 13, fontWeight: 600, color: 'var(--primary)', marginBottom: 24 }}>
-            ✨ Personal Finance Tracker — Local & Private
+            ✨ CarryUp Personal Finance Tracker — Local & Private
           </div>
           <h1>Track Your Money,<br />Master Your Life</h1>
-          <p>A beautiful personal finance tracker that runs entirely on your PC. Track expenses, set budgets, and gain insights — all without any cloud or subscription.</p>
+          <p>A beautiful personal finance application that runs entirely on your PC. Track expenses, set budgets, and gain insights — all without any cloud or subscription.</p>
           <div className="landing-cta">
             <Link to="/register">
               <motion.button className="btn btn-primary" whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} style={{ fontSize: 16, padding: '14px 32px' }}>
@@ -105,7 +108,7 @@ export default function Landing() {
 
       {/* Footer */}
       <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)', fontSize: 13, borderTop: '1px solid var(--border)' }}>
-        <p>💰 Tracker — Built for personal use. Runs locally on your PC.</p>
+        <p><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="16" height="16" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 6 }}><circle cx="20" cy="20" r="16" fill="none" stroke="var(--primary)" strokeWidth="2.5" /><path d="M15,15 L25,15 L25,25 Z" fill="var(--primary)" /></svg> CarryUp — Built for personal use. Runs locally on your PC.</p>
       </div>
     </div>
   );

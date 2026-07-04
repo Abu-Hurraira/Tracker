@@ -141,7 +141,7 @@ export default function Settings() {
       XLSX.utils.book_append_sheet(wb, wsExpense, 'Expenses');
 
       // Download
-      const fileName = `Tracker_Export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const fileName = `CarryUp_Export_${new Date().toISOString().slice(0, 10)}.xlsx`;
       XLSX.writeFile(wb, fileName);
 
       toast.dismiss(toastId);
@@ -227,7 +227,7 @@ export default function Settings() {
       {/* About */}
       <motion.div className="card" style={{ marginBottom: 20 }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
         <div className="section-title">ℹ️ About</div>
-        <SettingRow icon="💰" title="Tracker App" desc="Personal Finance Tracker v1.0.0" control={null} />
+        <SettingRow icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="22" height="22" style={{ display: 'inline-block', verticalAlign: 'middle' }}><circle cx="20" cy="20" r="16" fill="none" stroke="var(--primary)" strokeWidth="2.5" /><path d="M15,15 L25,15 L25,25 Z" fill="var(--primary)" /></svg>} title="CarryUp App" desc="CarryUp Finance Tracker v1.0.0" control={null} />
         <SettingRow icon="🛡️" title="Privacy" desc="All data stored locally on your PC" control={null} />
       </motion.div>
 

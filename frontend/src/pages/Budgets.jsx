@@ -16,6 +16,28 @@ import {
   FiActivity 
 } from 'react-icons/fi';
 
+const getBudgetGradient = (budgetId, percentUsed) => {
+  if (percentUsed > 80) {
+    return 'linear-gradient(90deg, #FF6B6B, #E53935)';
+  }
+  const gradients = [
+    'linear-gradient(90deg, #10B981, #34D399)', // Emerald/Mint
+    'linear-gradient(90deg, #3B82F6, #60A5FA)', // Blue
+    'linear-gradient(90deg, #8B5CF6, #A78BFA)', // Purple
+    'linear-gradient(90deg, #FBBF24, #F59E0B)', // Amber
+    'linear-gradient(90deg, #EC4899, #F472B6)', // Pink
+    'linear-gradient(90deg, #06B6D4, #22D3EE)', // Cyan
+    'linear-gradient(90deg, #F43F5E, #FB7185)', // Rose
+  ];
+  let hash = 0;
+  const str = budgetId || '';
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % gradients.length;
+  return gradients[index];
+};
+
 function BudgetModal({ open, onClose, onSaved, categories }) {
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
@@ -254,10 +276,10 @@ export default function Budgets() {
                     <span style={{ color: 'var(--accent-green)', fontWeight: 700 }}>{sym}{s.spent.toLocaleString()}</span> / {sym}{b.amount.toLocaleString()}
                   </span>
                 </div>
-                <div className="progress-bar" style={{ height: 8, background: '#ECEEF6' }}>
+                <div className="progress-bar" style={{ height: 8, background: 'var(--bg-input)' }}>
                   <motion.div
                     className="progress-bar-fill"
-                    style={{ background: 'linear-gradient(90deg, #10B981, #34D399)' }}
+                    style={{ background: getBudgetGradient(b.id, s.percentUsed) }}
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.min(100, s.percentUsed)}%` }}
                     transition={{ duration: 1, delay: 0.1 }}
@@ -268,16 +290,16 @@ export default function Budgets() {
 
             {/* Bottom Gray Stats Block */}
             {s && (
-              <div style={{ 
-                background: 'var(--bg-card2)', 
-                padding: '16px 24px', 
-                borderRadius: '16px', 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(3, 1fr)', 
-                gap: 16,
-                alignItems: 'center',
-                marginBottom: 16
-              }}>
+              <div 
+                className="budget-stats-grid"
+                style={{ 
+                  background: 'var(--bg-card2)', 
+                  padding: '16px 24px', 
+                  borderRadius: '16px', 
+                  alignItems: 'center',
+                  marginBottom: 16
+                }}
+              >
                 {/* Stat 1: Budget Amount */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', width: 38, height: 38, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

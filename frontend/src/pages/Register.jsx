@@ -30,14 +30,17 @@ export default function Register() {
   };
 
   return (
-    <div className="auth-page" style={{ background: 'linear-gradient(135deg, #F0F2FF 0%, #E8ECFF 100%)' }}>
+    <div className="auth-page">
       <motion.div className="auth-card" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <div className="auth-logo">
-          <Link to="/" style={{ textDecoration: 'none' }}>
-            <div className="auth-logo-icon">💰</div>
+          <Link to="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="56" height="56" style={{ margin: '0 auto 12px', display: 'block' }}>
+              <circle cx="20" cy="20" r="16" fill="none" stroke="var(--primary)" strokeWidth="2.5" style={{ filter: 'drop-shadow(0px 0px 4px var(--primary))' }} />
+              <path d="M15,15 L25,15 L25,25 Z" fill="var(--primary)" />
+            </svg>
           </Link>
           <div className="auth-title">Create Account</div>
-          <div className="auth-subtitle">Start tracking your finances today</div>
+          <div className="auth-subtitle">Start tracking your finances today with CarryUp</div>
         </div>
 
         <form onSubmit={handleSubmit}>

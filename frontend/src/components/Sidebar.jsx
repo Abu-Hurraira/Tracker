@@ -29,7 +29,7 @@ const BOTTOM_ITEMS = [
   { to: '/app/settings', icon: <FiSettings />, label: 'Settings' },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -40,13 +40,34 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-logo">
-        <div className="sidebar-logo-icon" style={{ color: '#FFFFFF' }}>
-          <FiCreditCard size={20} />
+    <>
+      {isOpen && (
+        <div 
+          className="sidebar-backdrop" 
+          onClick={onClose} 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.4)',
+            zIndex: 199,
+            backdropFilter: 'blur(4px)'
+          }}
+        />
+      )}
+      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+        <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="36" height="36" style={{ flexShrink: 0 }}>
+              <circle cx="20" cy="20" r="16" fill="none" stroke="var(--primary)" strokeWidth="2.5" style={{ filter: 'drop-shadow(0px 0px 4px var(--primary))' }} />
+              <path d="M15,15 L25,15 L25,25 Z" fill="var(--primary)" />
+            </svg>
+            <span className="sidebar-logo-text">CarryUp</span>
+          </div>
+          <button className="sidebar-close-btn" onClick={onClose} aria-label="Close menu">✕</button>
         </div>
-        <span className="sidebar-logo-text">Tracker</span>
-      </div>
 
       <nav className="sidebar-nav">
         {NAV_ITEMS.map(item => (
@@ -79,10 +100,13 @@ export default function Sidebar() {
         </div>
 
         <button className="sidebar-logout-btn" onClick={handleLogout}>
-          <FiLogOut size={16} />
+          <span className="icon">
+            <FiLogOut />
+          </span>
           Sign Out
         </button>
       </div>
     </aside>
-  );
+  </>
+);
 }

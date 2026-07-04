@@ -131,7 +131,7 @@ public class ReportsController : ControllerBase
         var totalExpense = thisMonthTx.Where(t => t.Type == "expense").Sum(t => t.Amount);
         var totalIncome = thisMonthTx.Where(t => t.Type == "income").Sum(t => t.Amount);
 
-        var recentTx = thisMonthTx.Take(5).Select(t => new {
+        var recentTx = thisMonthTx.Take(7).Select(t => new {
             t.Id, t.Title, t.Amount, t.Type, t.Note, t.Date,
             Category = t.Category == null ? null : new { t.Category.Name, t.Category.Icon, t.Category.Color }
         });

@@ -6,6 +6,28 @@ import { useAuth } from '../context/AuthContext';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 
+const getBudgetGradient = (budgetId, percentUsed) => {
+  if (percentUsed > 80) {
+    return 'linear-gradient(90deg, #FF6B6B, #E53935)';
+  }
+  const gradients = [
+    'linear-gradient(90deg, #10B981, #34D399)', // Emerald/Mint
+    'linear-gradient(90deg, #3B82F6, #60A5FA)', // Blue
+    'linear-gradient(90deg, #8B5CF6, #A78BFA)', // Purple
+    'linear-gradient(90deg, #FBBF24, #F59E0B)', // Amber
+    'linear-gradient(90deg, #EC4899, #F472B6)', // Pink
+    'linear-gradient(90deg, #06B6D4, #22D3EE)', // Cyan
+    'linear-gradient(90deg, #F43F5E, #FB7185)', // Rose
+  ];
+  let hash = 0;
+  const str = budgetId || '';
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % gradients.length;
+  return gradients[index];
+};
+
 const COLORS = ['#FF6B6B', '#6C63FF', '#4CAF7D', '#FF9800', '#2196F3', '#E91E63', '#9C27B0', '#00BCD4'];
 
 export default function BudgetDetail() {
@@ -50,7 +72,7 @@ export default function BudgetDetail() {
             <span style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>{percentUsed}%</span>
             <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600 }}>{format(new Date(budget.endDate), 'd MMM')}</span>
           </div>
-          <motion.div style={{ height: '100%', background: percentUsed > 80 ? 'linear-gradient(90deg,#FF6B6B,#E53935)' : 'linear-gradient(90deg,#6C63FF,#4CAF7D)', borderRadius: 100 }}
+          <motion.div style={{ height: '100%', background: getBudgetGradient(budget.id, percentUsed), borderRadius: 100 }}
             initial={{ width: 0 }} animate={{ width: `${Math.min(100, percentUsed)}%` }} transition={{ duration: 1 }} />
         </div>
         <div style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>

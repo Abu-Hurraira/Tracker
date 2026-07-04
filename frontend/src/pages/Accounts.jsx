@@ -145,7 +145,7 @@ export default function Accounts() {
         className="card" 
         style={{ 
           marginBottom: 24, 
-          background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', 
+          background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%)', 
           color: 'white', 
           position: 'relative',
           overflow: 'hidden',
@@ -160,17 +160,20 @@ export default function Accounts() {
         animate={{ opacity: 1, y: 0 }}
       >
         {/* Left glassmorphic card icon */}
-        <div style={{ 
-          background: 'rgba(255, 255, 255, 0.15)', 
-          backdropFilter: 'blur(8px)',
-          width: 72, 
-          height: 72, 
-          borderRadius: 20, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)'
-        }}>
+        <div 
+          className="accounts-banner-icon"
+          style={{ 
+            background: 'rgba(255, 255, 255, 0.15)', 
+            backdropFilter: 'blur(8px)',
+            width: 72, 
+            height: 72, 
+            borderRadius: 20, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)'
+          }}
+        >
           <FiCreditCard size={32} color="#FFFFFF" />
         </div>
 
@@ -182,15 +185,18 @@ export default function Accounts() {
         </div>
 
         {/* Right decorative elements (Floating wallet, cards, and coins) */}
-        <div style={{ 
-          position: 'relative', 
-          width: 140, 
-          height: 100, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center',
-          zIndex: 1
-        }}>
+        <div 
+          className="accounts-banner-decor"
+          style={{ 
+            position: 'relative', 
+            width: 140, 
+            height: 100, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            zIndex: 1
+          }}
+        >
           {/* Main Wallet illustration */}
           <div style={{ 
             position: 'absolute',
@@ -215,7 +221,7 @@ export default function Accounts() {
             position: 'absolute',
             width: 75,
             height: 48,
-            background: 'linear-gradient(135deg, #A5B4FC, #818CF8)',
+            background: 'linear-gradient(135deg, var(--primary-light), var(--primary))',
             borderRadius: 8,
             transform: 'rotate(-25deg) translate(-20px, -20px)',
             zIndex: -1
