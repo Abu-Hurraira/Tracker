@@ -5,6 +5,16 @@ import { useAuth } from '../context/AuthContext';
 import { format, differenceInDays } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { 
+  FiPlus, 
+  FiTarget, 
+  FiBarChart2, 
+  FiTrash2, 
+  FiInfo, 
+  FiCreditCard, 
+  FiDollarSign, 
+  FiActivity 
+} from 'react-icons/fi';
 
 function BudgetModal({ open, onClose, onSaved, categories }) {
   const [name, setName] = useState('');
@@ -43,8 +53,8 @@ function BudgetModal({ open, onClose, onSaved, categories }) {
               <input className="form-input" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Monthly Budget" required autoFocus />
             </div>
             <div className="form-group">
-              <label className="form-label">Total Amount (Rs)</label>
-              <input className="form-input" type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="10000" required min="1" />
+              <label className="form-label">Limit Amount</label>
+              <input className="form-input" type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} placeholder="e.g. 5000" required />
             </div>
             <div className="grid-2">
               <div className="form-group">
@@ -56,19 +66,26 @@ function BudgetModal({ open, onClose, onSaved, categories }) {
                 <input className="form-input" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} required />
               </div>
             </div>
+
             <div className="form-group">
-              <label className="form-label">Track Categories (optional — leave empty for all)</label>
-              <div className="emoji-grid" style={{ maxHeight: 160, overflowY: 'auto' }}>
-                {categories.filter(c => c.type === 'expense').map(c => (
-                  <button type="button" key={c.id} className={`emoji-btn ${selectedCats.includes(c.id) ? 'selected' : ''}`}
-                    onClick={() => toggleCat(c.id)} title={c.name} style={{ width: 'auto', padding: '6px 10px', gap: 4, fontSize: 13 }}>
+              <label className="form-label">Include Categories</label>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', maxHeight: 150, overflowY: 'auto', padding: 4 }}>
+                {categories.map(c => (
+                  <button
+                    type="button"
+                    key={c.id}
+                    className={`badge ${selectedCats.includes(c.id) ? 'badge-primary' : 'btn-secondary'}`}
+                    onClick={() => toggleCat(c.id)}
+                    style={{ cursor: 'pointer', padding: '6px 12px', border: '1px solid var(--border)' }}
+                  >
                     {c.icon} {c.name}
                   </button>
                 ))}
               </div>
             </div>
-            <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
-              {loading ? <span className="spinner" /> : '✓ Create Budget'}
+
+            <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ border: 'none' }}>
+              {loading ? 'Creating...' : 'Create Budget'}
             </button>
           </form>
         </motion.div>
@@ -79,12 +96,13 @@ function BudgetModal({ open, onClose, onSaved, categories }) {
 
 export default function Budgets() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const sym = user?.currencySymbol || 'Rs';
+
   const [budgets, setBudgets] = useState([]);
   const [categories, setCategories] = useState([]);
   const [spending, setSpending] = useState({});
   const [showModal, setShowModal] = useState(false);
-  const navigate = useNavigate();
 
   const load = async () => {
     const [bRes, cRes] = await Promise.all([budgetApi.getAll(), categoryApi.getAll()]);
@@ -111,9 +129,33 @@ export default function Budgets() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <h1 className="page-title">Budgets</h1>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>+ New Budget</button>
+      {/* Redesigned Header to match screenshot */}
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ 
+            background: 'var(--primary-light)', 
+            color: 'var(--primary)', 
+            width: 48, 
+            height: 48, 
+            borderRadius: '50%', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            fontSize: 24
+          }}>
+            <FiTarget size={24} />
+          </div>
+          <div>
+            <h1 className="page-title" style={{ margin: 0, fontSize: 28, fontWeight: 800 }}>Budgets</h1>
+            <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: 13 }}>
+              Stay on track and reach your goals 💜
+            </p>
+          </div>
+        </div>
+
+        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+          <FiPlus size={16} style={{ marginRight: 4 }} /> New Budget
+        </button>
       </div>
 
       {budgets.length === 0 && (
@@ -132,33 +174,70 @@ export default function Budgets() {
         const timePercent = Math.min(100, Math.max(0, (daysPassed / totalDays) * 100));
 
         return (
-          <motion.div key={b.id} className="budget-card" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} layout>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-              <div>
-                <div className="budget-name">{b.name}</div>
-                <div className="budget-meta">
-                  {s ? `${sym}${s.remaining.toLocaleString()} left of ${sym}${b.amount.toLocaleString()}` : `${sym}${b.amount.toLocaleString()} total`}
+          <motion.div key={b.id} className="card" style={{ marginBottom: 24, padding: 24 }} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} layout>
+            {/* Header info inside card */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', width: 48, height: 48, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <FiTarget size={22} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>{b.name}</div>
+                  <div style={{ fontSize: 14, color: 'var(--primary)', fontWeight: 600, marginTop: 2 }}>
+                    {s ? `${sym}${s.remaining.toLocaleString()} left of ${sym}${b.amount.toLocaleString()}` : `${sym}${b.amount.toLocaleString()} total`}
+                  </div>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <button className="btn btn-secondary btn-sm" onClick={() => navigate(`/app/budgets/${b.id}`)}>📊</button>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(b.id)}>🗑️</button>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button 
+                  className="btn btn-secondary" 
+                  style={{ width: 40, height: 40, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)', color: 'var(--accent-green)', background: '#FFFFFF' }} 
+                  onClick={() => navigate(`/app/budgets/${b.id}`)}
+                >
+                  <FiBarChart2 size={18} />
+                </button>
+                <button 
+                  className="btn btn-danger" 
+                  style={{ width: 40, height: 40, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--accent-red), #EF4444)' }} 
+                  onClick={() => handleDelete(b.id)}
+                >
+                  <FiTrash2 size={18} style={{ color: '#FFFFFF' }} />
+                </button>
               </div>
             </div>
 
-            {/* Timeline */}
-            <div style={{ marginBottom: 6 }}>
-              <div className="budget-timeline">
+            {/* Timeline Progress with floating pill */}
+            <div style={{ position: 'relative', marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
                 <span>{format(new Date(b.startDate), 'd MMM')}</span>
-                <span style={{ background: 'var(--primary)', color: 'white', padding: '2px 8px', borderRadius: 100, fontSize: 11, fontWeight: 600 }}>
-                  Today
-                </span>
                 <span>{format(new Date(b.endDate), 'd MMM')}</span>
               </div>
-              <div className="progress-bar">
+              
+              <div style={{ position: 'relative', height: 24, marginBottom: 4 }}>
+                <motion.span 
+                  style={{ 
+                    position: 'absolute', 
+                    left: `${timePercent}%`, 
+                    transform: 'translateX(-50%)',
+                    background: 'var(--primary)', 
+                    color: 'white', 
+                    padding: '2px 10px', 
+                    borderRadius: 100, 
+                    fontSize: 11, 
+                    fontWeight: 700,
+                    whiteSpace: 'nowrap'
+                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  Today
+                </motion.span>
+              </div>
+
+              <div className="progress-bar" style={{ height: 6, background: '#EAEBFF' }}>
                 <motion.div
                   className="progress-bar-fill"
-                  style={{ background: 'linear-gradient(90deg, var(--primary), var(--primary-dark))' }}
+                  style={{ background: 'var(--primary)' }}
                   initial={{ width: 0 }}
                   animate={{ width: `${timePercent}%` }}
                   transition={{ duration: 1 }}
@@ -166,32 +245,84 @@ export default function Budgets() {
               </div>
             </div>
 
-            {/* Spending */}
+            {/* Spending progress bar */}
             {s && (
-              <>
+              <div style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{s.percentUsed}% spent</span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: s.remaining < 0 ? 'var(--accent-red)' : 'var(--accent-green)' }}>
-                    {sym}{s.spent.toLocaleString()} / {sym}{b.amount.toLocaleString()}
+                  <span style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>{s.percentUsed}% spent</span>
+                  <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>
+                    <span style={{ color: 'var(--accent-green)', fontWeight: 700 }}>{sym}{s.spent.toLocaleString()}</span> / {sym}{b.amount.toLocaleString()}
                   </span>
                 </div>
-                <div className="progress-bar" style={{ height: 10, marginBottom: 10 }}>
+                <div className="progress-bar" style={{ height: 8, background: '#ECEEF6' }}>
                   <motion.div
                     className="progress-bar-fill"
-                    style={{ background: s.percentUsed > 80 ? 'linear-gradient(90deg, #FF6B6B, #E53935)' : 'linear-gradient(90deg, #4CAF7D, #8BC34A)' }}
+                    style={{ background: 'linear-gradient(90deg, #10B981, #34D399)' }}
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.min(100, s.percentUsed)}%` }}
-                    transition={{ duration: 1, delay: 0.2 }}
+                    transition={{ duration: 1, delay: 0.1 }}
                   />
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center' }}>
-                  You can spend {sym}{s.dailyAllowance.toLocaleString()}/day for {s.daysRemaining} more days
-                </div>
-              </>
+              </div>
             )}
 
-            {/* Category chips */}
-            {b.categories.length > 0 && (
+            {/* Bottom Gray Stats Block */}
+            {s && (
+              <div style={{ 
+                background: 'var(--bg-card2)', 
+                padding: '16px 24px', 
+                borderRadius: '16px', 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(3, 1fr)', 
+                gap: 16,
+                alignItems: 'center',
+                marginBottom: 16
+              }}>
+                {/* Stat 1: Budget Amount */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', width: 38, height: 38, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <FiCreditCard size={18} />
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500 }}>Budget Amount</div>
+                    <div style={{ color: 'var(--text-primary)', fontSize: 15, fontWeight: 700 }}>{sym}{b.amount.toLocaleString()}</div>
+                  </div>
+                </div>
+
+                {/* Stat 2: Spent */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ background: 'rgba(16, 185, 129, 0.08)', color: 'var(--accent-green)', width: 38, height: 38, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <FiDollarSign size={18} />
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500 }}>Spent</div>
+                    <div style={{ color: 'var(--accent-green)', fontSize: 15, fontWeight: 700 }}>{sym}{s.spent.toLocaleString()}</div>
+                  </div>
+                </div>
+
+                {/* Stat 3: Daily Limit */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', width: 38, height: 38, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <FiActivity size={18} />
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: 12, fontWeight: 500 }}>Daily Limit</div>
+                    <div style={{ color: 'var(--primary)', fontSize: 15, fontWeight: 700 }}>{sym}{s.dailyAllowance.toFixed(2)}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Footer Message */}
+            {s && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
+                <FiInfo size={15} style={{ color: 'var(--text-muted)' }} />
+                <span>You can spend {sym}{s.dailyAllowance.toFixed(2)}/day for {s.daysRemaining} more days</span>
+              </div>
+            )}
+
+            {/* Category chips if present */}
+            {!s && b.categories.length > 0 && (
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
                 {b.categories.map(c => (
                   <span key={c.id} className="badge badge-primary" style={{ fontSize: 11 }}>{c.icon} {c.name}</span>
@@ -201,8 +332,6 @@ export default function Budgets() {
           </motion.div>
         );
       })}
-
-      <motion.button className="fab" onClick={() => setShowModal(true)} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>+</motion.button>
 
       <BudgetModal open={showModal} onClose={() => setShowModal(false)} onSaved={load} categories={categories} />
     </div>

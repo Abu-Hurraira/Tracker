@@ -107,7 +107,7 @@ export default function Categories() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">Categories</h1>
-        <button className="btn btn-primary" onClick={() => { setEditCat(null); setShowModal(true); }}>+ Add</button>
+        <button className="btn btn-primary" onClick={() => { setEditCat(null); setShowModal(true); }}>Add Category</button>
       </div>
 
       <div className="tabs" style={{ marginBottom: 20 }}>

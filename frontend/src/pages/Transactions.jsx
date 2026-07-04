@@ -72,6 +72,7 @@ export default function Transactions() {
     <div className="page">
       <div className="page-header">
         <h1 className="page-title">Transactions</h1>
+        <button className="btn btn-primary" onClick={() => { setEditTx(null); setShowModal(true); }}>Add Transaction</button>
       </div>
 
       {/* Month Tabs */}
@@ -114,7 +115,7 @@ export default function Transactions() {
           <div className="empty-state">
             <div className="emoji">💸</div>
             <h3>No transactions in {MONTHS[month - 1]}</h3>
-            <p>Tap + to add your first transaction</p>
+            <p>Click "Add Transaction" to add your first transaction</p>
           </div>
         )}
         {grouped.map(([date, txs]) => (
@@ -214,8 +215,6 @@ export default function Transactions() {
           </div>
         )}
       </motion.div>
-
-      <motion.button className="fab" onClick={() => { setEditTx(null); setShowModal(true); }} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>+</motion.button>
 
       <TransactionModal
         open={showModal}

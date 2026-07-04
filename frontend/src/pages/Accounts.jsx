@@ -3,6 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { accountApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import { 
+  FiPlus, 
+  FiMoreVertical, 
+  FiEdit2, 
+  FiTrash2, 
+  FiCreditCard, 
+  FiActivity 
+} from 'react-icons/fi';
 
 const ACCOUNT_ICONS = ['🏦', '💵', '💳', '🏧', '💰', '🪙', '📱', '💼'];
 const ACCOUNT_TYPES = ['bank', 'cash', 'card', 'savings', 'investment'];
@@ -17,8 +25,19 @@ function AccountModal({ open, onClose, onSaved, edit }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (edit) { setName(edit.name); setType(edit.type); setIcon(edit.icon); setColor(edit.color); setBalance(String(edit.balance)); }
-    else { setName(''); setType('bank'); setIcon('🏦'); setColor('#6C63FF'); setBalance('0'); }
+    if (edit) { 
+      setName(edit.name); 
+      setType(edit.type); 
+      setIcon(edit.icon); 
+      setColor(edit.color); 
+      setBalance(String(edit.balance)); 
+    } else { 
+      setName(''); 
+      setType('bank'); 
+      setIcon('🏦'); 
+      setColor('#6C63FF'); 
+      setBalance('0'); 
+    }
   }, [edit, open]);
 
   const handleSubmit = async (e) => {
@@ -28,9 +47,13 @@ function AccountModal({ open, onClose, onSaved, edit }) {
       if (edit) await accountApi.update(edit.id, { name, icon, color, balance: parseFloat(balance) });
       else await accountApi.create({ name, type, icon, color, balance: parseFloat(balance) });
       toast.success(edit ? 'Account updated!' : 'Account created!');
-      onSaved(); onClose();
-    } catch { toast.error('Failed to save account'); }
-    finally { setLoading(false); }
+      onSaved(); 
+      onClose();
+    } catch { 
+      toast.error('Failed to save account'); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   if (!open) return null;
@@ -75,8 +98,8 @@ function AccountModal({ open, onClose, onSaved, edit }) {
               <label className="form-label">Current Balance (Rs)</label>
               <input className="form-input" type="number" value={balance} onChange={e => setBalance(e.target.value)} step="0.01" />
             </div>
-            <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
-              {loading ? <span className="spinner" /> : (edit ? '✓ Update' : '✓ Add Account')}
+            <button type="submit" className="btn btn-primary btn-full" disabled={loading} style={{ border: 'none' }}>
+              {loading ? 'Saving...' : (edit ? 'Update Account' : 'Add Account')}
             </button>
           </form>
         </motion.div>
@@ -92,7 +115,11 @@ export default function Accounts() {
   const [showModal, setShowModal] = useState(false);
   const [editAcc, setEditAcc] = useState(null);
 
-  const load = async () => { const r = await accountApi.getAll(); setAccounts(r.data); };
+  const load = async () => { 
+    const r = await accountApi.getAll(); 
+    setAccounts(r.data); 
+  };
+  
   useEffect(() => { load(); }, []);
 
   const handleDelete = async (id) => {
@@ -106,17 +133,137 @@ export default function Accounts() {
 
   return (
     <div className="page">
-      <div className="page-header">
-        <h1 className="page-title">Accounts</h1>
-        <button className="btn btn-primary" onClick={() => { setEditAcc(null); setShowModal(true); }}>+ Add Account</button>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h1 className="page-title" style={{ margin: 0 }}>Accounts</h1>
+        <button className="btn btn-primary" onClick={() => { setEditAcc(null); setShowModal(true); }}>
+          <FiPlus size={16} style={{ marginRight: 4 }} /> Add Account
+        </button>
       </div>
 
-      {/* Total Balance */}
-      <motion.div className="card" style={{ marginBottom: 24, background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', color: 'white', textAlign: 'center' }}
-        initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>Total Balance</div>
-        <div style={{ fontSize: 40, fontWeight: 900 }}>{sym}{totalBalance.toLocaleString()}</div>
-        <div style={{ fontSize: 13, opacity: 0.7, marginTop: 4 }}>{accounts.length} accounts</div>
+      {/* Redesigned Total Balance banner to match screenshot */}
+      <motion.div 
+        className="card" 
+        style={{ 
+          marginBottom: 24, 
+          background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)', 
+          color: 'white', 
+          position: 'relative',
+          overflow: 'hidden',
+          padding: '24px 32px',
+          height: 180,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderRadius: 24
+        }}
+        initial={{ opacity: 0, y: -10 }} 
+        animate={{ opacity: 1, y: 0 }}
+      >
+        {/* Left glassmorphic card icon */}
+        <div style={{ 
+          background: 'rgba(255, 255, 255, 0.15)', 
+          backdropFilter: 'blur(8px)',
+          width: 72, 
+          height: 72, 
+          borderRadius: 20, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)'
+        }}>
+          <FiCreditCard size={32} color="#FFFFFF" />
+        </div>
+
+        {/* Center stats */}
+        <div style={{ textAlign: 'center', flex: 1, zIndex: 2 }}>
+          <div style={{ fontSize: 12, opacity: 0.8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.5 }}>Total Balance</div>
+          <div style={{ fontSize: 42, fontWeight: 900, margin: '6px 0' }}>{sym}{totalBalance.toLocaleString()}</div>
+          <div style={{ fontSize: 13, opacity: 0.7, fontWeight: 500 }}>{accounts.length} accounts</div>
+        </div>
+
+        {/* Right decorative elements (Floating wallet, cards, and coins) */}
+        <div style={{ 
+          position: 'relative', 
+          width: 140, 
+          height: 100, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          zIndex: 1
+        }}>
+          {/* Main Wallet illustration */}
+          <div style={{ 
+            position: 'absolute',
+            width: 110,
+            height: 75,
+            background: 'rgba(255, 255, 255, 0.2)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: 14,
+            transform: 'rotate(-12deg)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            paddingRight: 10
+          }}>
+            {/* Wallet button */}
+            <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#FFFFFF', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+          </div>
+          {/* Card 1 sticking out */}
+          <div style={{ 
+            position: 'absolute',
+            width: 75,
+            height: 48,
+            background: 'linear-gradient(135deg, #A5B4FC, #818CF8)',
+            borderRadius: 8,
+            transform: 'rotate(-25deg) translate(-20px, -20px)',
+            zIndex: -1
+          }} />
+          {/* Card 2 sticking out */}
+          <div style={{ 
+            position: 'absolute',
+            width: 75,
+            height: 48,
+            background: 'linear-gradient(135deg, #34D399, #059669)',
+            borderRadius: 8,
+            transform: 'rotate(-18deg) translate(-10px, -15px)',
+            zIndex: -2
+          }} />
+          {/* Floating coins */}
+          <div style={{ 
+            position: 'absolute',
+            top: -10,
+            right: 110,
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            background: '#FBBF24',
+            color: '#78350F',
+            fontSize: 10,
+            fontWeight: 800,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          }}>{sym}</div>
+          <div style={{ 
+            position: 'absolute',
+            bottom: 5,
+            right: -10,
+            width: 16,
+            height: 16,
+            borderRadius: '50%',
+            background: '#FBBF24',
+            color: '#78350F',
+            fontSize: 7,
+            fontWeight: 800,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          }}>{sym}</div>
+        </div>
       </motion.div>
 
       {accounts.length === 0 && (
@@ -127,22 +274,120 @@ export default function Accounts() {
         </div>
       )}
 
-      <div className="grid-2">
+      {/* Redesigned Account Cards List (full width, not grid-2) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {accounts.map((a, i) => (
-          <motion.div key={a.id} className="card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} layout>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div className="cat-icon" style={{ background: a.color + '20', width: 52, height: 52, fontSize: 24 }}>{a.icon}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 16 }}>{a.name}</div>
-                <div className="badge badge-primary" style={{ marginTop: 4, textTransform: 'capitalize' }}>{a.type}</div>
+          <motion.div 
+            key={a.id} 
+            className="card" 
+            style={{ 
+              padding: 24, 
+              display: 'flex', 
+              flexDirection: 'column',
+              borderRadius: 20
+            }} 
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: i * 0.05 }} 
+            layout
+          >
+            {/* Top row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                {/* Icon Circle */}
+                <div style={{ 
+                  background: a.color + '15', 
+                  color: a.color,
+                  width: 56, 
+                  height: 56, 
+                  fontSize: 26,
+                  borderRadius: 14,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {a.icon}
+                </div>
+                {/* Name & Type Badge & Balance */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--text-primary)' }}>{a.name}</div>
+                    <span style={{ 
+                      marginLeft: 10,
+                      background: 'rgba(99, 102, 241, 0.08)',
+                      color: '#6366F1',
+                      padding: '4px 10px',
+                      borderRadius: 100,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      textTransform: 'capitalize'
+                    }}>
+                      {a.type}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--accent-green)', marginTop: 8 }}>
+                    {a.balance < 0 ? '-' : ''}{sym}{Math.abs(a.balance).toLocaleString()}
+                  </div>
+                </div>
               </div>
+              
+              {/* Option details menu icon */}
+              <button className="btn btn-ghost btn-icon" style={{ color: 'var(--text-muted)' }}>
+                <FiMoreVertical size={20} />
+              </button>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: a.balance >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', marginBottom: 12 }}>
-              {a.balance < 0 ? '-' : ''}{sym}{Math.abs(a.balance).toLocaleString()}
-            </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn btn-secondary btn-sm flex-1" onClick={() => { setEditAcc(a); setShowModal(true); }}>✏️ Edit</button>
-              <button className="btn btn-danger btn-sm" onClick={() => handleDelete(a.id)}>🗑️</button>
+
+            {/* Dotted divider line */}
+            <div style={{ 
+              borderTop: '1px dashed var(--border)', 
+              margin: '20px 0' 
+            }} />
+
+            {/* Bottom Row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {/* Mock account number */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: 14 }}>
+                <FiCreditCard size={16} />
+                <span>1234 5678 {(9000 + (Number(a.id) || 0) * 8).toString()}</span>
+              </div>
+              
+              {/* Edit / Delete actions */}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button 
+                  className="btn" 
+                  style={{ 
+                    background: 'rgba(99, 102, 241, 0.08)', 
+                    color: '#6366F1', 
+                    padding: '8px 16px',
+                    borderRadius: 10,
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    border: 'none',
+                    fontSize: 13
+                  }} 
+                  onClick={() => { setEditAcc(a); setShowModal(true); }}
+                >
+                  <FiEdit2 size={14} /> Edit
+                </button>
+                <button 
+                  className="btn btn-danger" 
+                  style={{ 
+                    width: 40, 
+                    height: 40, 
+                    padding: 0, 
+                    borderRadius: 10,
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    background: 'linear-gradient(135deg, var(--accent-red), #EF4444)'
+                  }} 
+                  onClick={() => handleDelete(a.id)}
+                >
+                  <FiTrash2 size={16} style={{ color: '#FFFFFF' }} />
+                </button>
+              </div>
             </div>
           </motion.div>
         ))}

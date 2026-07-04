@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { FiSearch, FiBell, FiChevronDown } from 'react-icons/fi';
 
 const PAGE_TITLES = {
   '/app/dashboard': 'Dashboard',
@@ -26,19 +27,49 @@ export default function Topbar() {
     <header className="topbar">
       <div>
         <div className="topbar-title">{title}</div>
-        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{greeting}, {user?.username || 'User'}!</div>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{greeting}, {user?.username || 'Hurriara'}! 👋</div>
       </div>
+
+      {/* Search Input in the center */}
+      <div className="topbar-search" style={{ margin: '0 auto 0 40px' }}>
+        <FiSearch className="topbar-search-icon" />
+        <input 
+          type="text" 
+          placeholder="Search anything..." 
+          className="topbar-search-input"
+        />
+      </div>
+
       <div className="topbar-actions">
-        <div
-          className="avatar"
-          style={{ background: user?.avatarColor || '#6C63FF', overflow: 'hidden', padding: 0 }}
-          onClick={() => navigate('/app/profile')}
-          title="Profile"
-        >
-          {user?.profilePicture
-            ? <img src={user.profilePicture} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-            : initials
-          }
+        {/* Notification Bell */}
+        <div className="notification-bell">
+          <FiBell size={20} />
+          <span className="notification-badge">3</span>
+        </div>
+
+        {/* Profile Details Trigger */}
+        <div className="profile-btn" onClick={() => navigate('/app/profile')}>
+          <div
+            className="avatar"
+            style={{ 
+              background: user?.avatarColor || 'var(--primary)', 
+              overflow: 'hidden', 
+              padding: 0,
+              width: 36,
+              height: 36,
+              fontSize: 13,
+              fontWeight: 700,
+              borderRadius: '50%'
+            }}
+            title="Profile"
+          >
+            {user?.profilePicture
+              ? <img src={user.profilePicture} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+              : initials
+            }
+          </div>
+          <span className="profile-name">{user?.username || 'Hurriara'}</span>
+          <FiChevronDown className="profile-chevron" />
         </div>
       </div>
     </header>
