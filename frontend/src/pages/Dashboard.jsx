@@ -138,7 +138,7 @@ export default function Dashboard() {
       >
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 4, color: 'var(--text-primary)' }}>
-            Hello, {user?.username || 'Hurriara'}! 👋
+            Hello, {user?.username || 'Hurraira'}! 👋
           </h1>
           <p style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: 13 }}>
             {format(new Date(), 'EEEE, MMMM d, yyyy')}
