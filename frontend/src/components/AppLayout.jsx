@@ -14,7 +14,7 @@ export default function AppLayout() {
     setSidebarOpen(false);
   }, [location]);
 
-  if (loading) return (
+  if (loading && !user) return (
     <div className="loading-screen">
       <div style={{ fontSize: 48 }}>💰</div>
       <div className="spinner" style={{ width: 32, height: 32 }} />

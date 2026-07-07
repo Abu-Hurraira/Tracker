@@ -115,11 +115,11 @@ export default function Accounts() {
   const [showModal, setShowModal] = useState(false);
   const [editAcc, setEditAcc] = useState(null);
 
-  const load = async () => { 
-    const r = await accountApi.getAll(); 
-    setAccounts(r.data); 
+  const load = async () => {
+    const r = await accountApi.getAll();
+    setAccounts(r.data);
   };
-  
+
   useEffect(() => { load(); }, []);
 
   const handleDelete = async (id) => {

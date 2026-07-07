@@ -64,6 +64,14 @@ public record BudgetSpendingDto(
     List<CategorySpendingDto> CategoryBreakdown
 );
 
+public record BudgetSpendingSummaryDto(
+    decimal Spent,
+    decimal Remaining,
+    decimal PercentUsed,
+    decimal DailyAllowance,
+    int DaysRemaining
+);
+
 // Reports
 public record SummaryDto(
     decimal TotalExpense,

@@ -130,12 +130,19 @@ export default function Budgets() {
     const [bRes, cRes] = await Promise.all([budgetApi.getAll(), categoryApi.getAll()]);
     setBudgets(bRes.data);
     setCategories(cRes.data);
-    // Load spending for each budget
-    const spendMap = {};
-    for (const b of bRes.data) {
-      try { const s = await budgetApi.getSpending(b.id); spendMap[b.id] = s.data; } catch {}
+    try {
+      const sRes = await budgetApi.getAllSpending();
+      setSpending(sRes.data);
+    } catch {
+      const spendMap = {};
+      await Promise.all(bRes.data.map(async (b) => {
+        try {
+          const s = await budgetApi.getSpending(b.id);
+          spendMap[b.id] = s.data;
+        } catch {}
+      }));
+      setSpending(spendMap);
     }
-    setSpending(spendMap);
   };
 
   useEffect(() => { load(); }, []);

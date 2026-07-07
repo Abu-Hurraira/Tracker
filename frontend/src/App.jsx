@@ -20,46 +20,46 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              style: {
-                background: 'var(--bg-card)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border)',
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontFamily: 'Inter, sans-serif',
-              },
-              success: { iconTheme: { primary: '#4CAF7D', secondary: 'white' } },
-              error: { iconTheme: { primary: '#FF6B6B', secondary: 'white' } },
-            }}
-          />
-          <Routes>
-            {/* Public */}
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+          <BrowserRouter>
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: 'var(--bg-card)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '12px',
+                  fontSize: '14px',
+                  fontFamily: 'Inter, sans-serif',
+                },
+                success: { iconTheme: { primary: '#4CAF7D', secondary: 'white' } },
+                error: { iconTheme: { primary: '#FF6B6B', secondary: 'white' } },
+              }}
+            />
+            <Routes>
+              {/* Public */}
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-            {/* Protected App */}
-            <Route path="/app" element={<AppLayout />}>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="transactions" element={<Transactions />} />
-              <Route path="summary" element={<Summary />} />
-              <Route path="budgets" element={<Budgets />} />
-              <Route path="budgets/:id" element={<BudgetDetail />} />
-              <Route path="accounts" element={<Accounts />} />
-              <Route path="categories" element={<Categories />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="settings" element={<Settings />} />
-            </Route>
+              {/* Protected App */}
+              <Route path="/app" element={<AppLayout />}>
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="transactions" element={<Transactions />} />
+                <Route path="summary" element={<Summary />} />
+                <Route path="budgets" element={<Budgets />} />
+                <Route path="budgets/:id" element={<BudgetDetail />} />
+                <Route path="accounts" element={<Accounts />} />
+                <Route path="categories" element={<Categories />} />
+                <Route path="profile" element={<Profile />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
   );

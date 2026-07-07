@@ -109,7 +109,10 @@ export default function Categories() {
   const [editCat, setEditCat] = useState(null);
   const [filterType, setFilterType] = useState('expense');
 
-  const load = async () => { const r = await categoryApi.getAll(); setCategories(r.data); };
+  const load = async () => {
+    const r = await categoryApi.getAll();
+    setCategories(r.data);
+  };
   useEffect(() => { load(); }, []);
 
   const handleDelete = async (id) => {

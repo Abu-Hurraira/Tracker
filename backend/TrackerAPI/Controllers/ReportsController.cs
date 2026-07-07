@@ -123,30 +123,38 @@ public class ReportsController : ControllerBase
         var now = DateTime.UtcNow;
         var startOfMonth = new DateTime(now.Year, now.Month, 1);
 
-        var thisMonthTx = await _db.Transactions
+        // DbContext is not thread-safe — run queries sequentially
+        var monthStats = await _db.Transactions
+            .Where(t => t.UserId == userId && t.Date >= startOfMonth)
+            .GroupBy(_ => 1)
+            .Select(g => new
+            {
+                Expense = g.Where(t => t.Type == "expense").Sum(t => (decimal?)t.Amount) ?? 0,
+                Income = g.Where(t => t.Type == "income").Sum(t => (decimal?)t.Amount) ?? 0,
+                Count = g.Count()
+            })
+            .FirstOrDefaultAsync() ?? new { Expense = 0m, Income = 0m, Count = 0 };
+
+        var recentTx = await _db.Transactions
             .Include(t => t.Category)
             .Where(t => t.UserId == userId && t.Date >= startOfMonth)
-            .OrderByDescending(t => t.Date).ToListAsync();
-
-        var totalExpense = thisMonthTx.Where(t => t.Type == "expense").Sum(t => t.Amount);
-        var totalIncome = thisMonthTx.Where(t => t.Type == "income").Sum(t => t.Amount);
-
-        var recentTx = thisMonthTx.Take(7).Select(t => new {
-            t.Id, t.Title, t.Amount, t.Type, t.Note, t.Date,
-            Category = t.Category == null ? null : new { t.Category.Name, t.Category.Icon, t.Category.Color }
-        });
+            .OrderByDescending(t => t.Date)
+            .Take(7)
+            .Select(t => new {
+                t.Id, t.Title, t.Amount, t.Type, t.Note, t.Date,
+                Category = t.Category == null ? null : new { t.Category.Name, t.Category.Icon, t.Category.Color }
+            })
+            .ToListAsync();
 
         var accounts = await _db.Accounts.Where(a => a.UserId == userId).ToListAsync();
-        var totalBalance = accounts.Sum(a => a.Balance);
 
-        // Active budgets: where today is within start–end range
         var activeBudgetTotal = await _db.Budgets
             .Where(b => b.UserId == userId && b.StartDate <= now && b.EndDate >= now)
             .SumAsync(b => (decimal?)b.Amount) ?? 0;
 
         return Ok(new {
-            ThisMonth = new { Expense = totalExpense, Income = totalIncome, Net = totalIncome - totalExpense, TransactionCount = thisMonthTx.Count },
-            TotalBalance = totalBalance,
+            ThisMonth = new { Expense = monthStats.Expense, Income = monthStats.Income, Net = monthStats.Income - monthStats.Expense, TransactionCount = monthStats.Count },
+            TotalBalance = accounts.Sum(a => a.Balance),
             ActiveBudgetTotal = activeBudgetTotal,
             RecentTransactions = recentTx,
             Accounts = accounts.Select(a => new { a.Id, a.Name, a.Type, a.Icon, a.Color, a.Balance })

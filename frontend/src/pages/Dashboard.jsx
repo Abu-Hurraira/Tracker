@@ -28,7 +28,7 @@ export default function Dashboard() {
       const res = await reportApi.getDashboard();
       setData(res.data);
     } catch (err) {
-      console.error("Error loading dashboard data:", err);
+      console.error('Error loading dashboard data:', err);
     }
   };
 

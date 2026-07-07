@@ -67,6 +67,7 @@ export const budgetApi = {
   update: (id, data) => api.put(`/budgets/${id}`, data),
   delete: (id) => api.delete(`/budgets/${id}`),
   getSpending: (id) => api.get(`/budgets/${id}/spending`),
+  getAllSpending: () => api.get('/budgets/spending-summary'),
 };
 
 // ─── Reports ───

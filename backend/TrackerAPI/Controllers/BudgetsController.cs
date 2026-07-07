@@ -41,6 +41,53 @@ public class BudgetsController : ControllerBase
         return Ok(MapToDto(budget));
     }
 
+    [HttpGet("spending-summary")]
+    public async Task<IActionResult> GetAllSpending()
+    {
+        var userId = GetUserId();
+        var budgets = await _db.Budgets
+            .Include(b => b.BudgetCategories)
+            .Where(b => b.UserId == userId)
+            .ToListAsync();
+
+        if (budgets.Count == 0)
+            return Ok(new Dictionary<int, BudgetSpendingSummaryDto>());
+
+        var minDate = budgets.Min(b => b.StartDate);
+        var maxDate = budgets.Max(b => b.EndDate);
+        var today = DateTime.UtcNow.Date;
+
+        var transactions = await _db.Transactions
+            .Where(t => t.UserId == userId && t.Type == "expense"
+                && t.Date >= minDate && t.Date <= maxDate)
+            .ToListAsync();
+
+        var result = new Dictionary<int, BudgetSpendingSummaryDto>();
+        foreach (var budget in budgets)
+        {
+            var categoryIds = budget.BudgetCategories.Select(bc => bc.CategoryId).ToHashSet();
+            var budgetTx = transactions.Where(t =>
+                t.Date >= budget.StartDate && t.Date <= budget.EndDate
+                && (categoryIds.Count == 0 || (t.CategoryId.HasValue && categoryIds.Contains(t.CategoryId.Value))));
+
+            var totalSpent = budgetTx.Sum(t => t.Amount);
+            var remaining = budget.Amount - totalSpent;
+            var percentUsed = budget.Amount > 0 ? (totalSpent / budget.Amount) * 100 : 0;
+            var daysRemaining = Math.Max(0, (budget.EndDate.Date - today).Days);
+            var dailyAllowance = daysRemaining > 0 ? remaining / daysRemaining : 0;
+
+            result[budget.Id] = new BudgetSpendingSummaryDto(
+                totalSpent,
+                remaining,
+                Math.Round(percentUsed, 1),
+                Math.Round(dailyAllowance, 2),
+                daysRemaining
+            );
+        }
+
+        return Ok(result);
+    }
+
     [HttpGet("{id}/spending")]
     public async Task<IActionResult> GetSpending(int id)
     {
