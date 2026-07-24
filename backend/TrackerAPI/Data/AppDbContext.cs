@@ -54,6 +54,10 @@ public class AppDbContext : DbContext
             .Property(a => a.Balance)
             .HasPrecision(18, 2);
 
+        modelBuilder.Entity<Account>()
+            .Property(a => a.InitialDeposit)
+            .HasPrecision(18, 2);
+
         // Cascade rules
         modelBuilder.Entity<Transaction>()
             .HasOne(t => t.Category)

@@ -16,9 +16,10 @@ public record CreateCategoryDto(string Name, string Icon, string Color, string T
 public record UpdateCategoryDto(string? Name, string? Icon, string? Color);
 
 // Account
-public record AccountDto(int Id, string Name, string Type, string Icon, string Color, decimal Balance);
-public record CreateAccountDto(string Name, string Type, string Icon, string Color, decimal Balance);
+public record AccountDto(int Id, string Name, string Type, string Icon, string Color, decimal Balance, bool IsMain = false, decimal InitialDeposit = 0);
+public record CreateAccountDto(string Name, string Type, string Icon, string Color, decimal Balance, bool IsMain = false);
 public record UpdateAccountDto(string? Name, string? Icon, string? Color, decimal? Balance);
+public record TransferFundsDto(int ToAccountId, decimal Amount);
 
 // Transaction
 public record TransactionDto(
@@ -79,7 +80,14 @@ public record SummaryDto(
     decimal NetTotal,
     int TransactionCount,
     List<DailyTotalDto> DailyTotals,
-    List<CategorySpendingDto> CategoryBreakdown
+    List<CategorySpendingDto> CategoryBreakdown,
+    decimal TotalAccountBalance = 0,
+    decimal ActiveBudgetTotal = 0,
+    decimal ActiveBudgetRemaining = 0,
+    decimal ActiveBudgetSpent = 0,
+    int AccountCount = 0,
+    decimal MainAccountBalance = 0,
+    decimal MainAccountInitialDeposit = 0
 );
 public record DailyTotalDto(DateTime Date, decimal Expense, decimal Income);
 public record CategorySpendingDto(CategoryDto Category, decimal Amount, decimal Percentage, int Count);

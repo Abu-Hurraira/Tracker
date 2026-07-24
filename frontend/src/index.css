@@ -319,8 +319,9 @@ ul { list-style: none; }
 .tx-amount { font-size: 16px; font-weight: 700; }
 
 /* ─── Summary Cards ─── */
-.summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-@media (max-width: 768px) { .summary-cards { grid-template-columns: 1fr; } }
+.summary-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+@media (max-width: 1100px) { .summary-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .summary-cards { grid-template-columns: 1fr; } }
 .summary-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
 .summary-card-label { font-size: 13px; color: var(--text-muted); font-weight: 500; margin-bottom: 8px; }
 .summary-card-value { font-size: 26px; font-weight: 800; }
@@ -523,17 +524,22 @@ ul { list-style: none; }
   border-radius: 50%;
   background: var(--bg-input);
   transition: var(--transition);
+  border: none;
 }
 .notification-bell:hover {
   background: var(--border);
   color: var(--primary);
 }
+.notification-bell-wrap {
+  position: relative;
+}
 .notification-badge {
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 16px;
+  min-width: 16px;
   height: 16px;
+  padding: 0 4px;
   background: var(--primary);
   color: white;
   border-radius: 50%;
@@ -543,6 +549,75 @@ ul { list-style: none; }
   align-items: center;
   justify-content: center;
   border: 2px solid var(--bg-card);
+}
+.notification-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 340px;
+  max-width: min(340px, calc(100vw - 24px));
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  overflow: hidden;
+}
+.notification-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+}
+.notification-panel-list {
+  max-height: 360px;
+  overflow-y: auto;
+}
+.notification-item {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s ease;
+}
+.notification-item:hover {
+  background: var(--bg-input);
+}
+.notification-item.unread {
+  background: rgba(var(--primary-rgb), 0.06);
+}
+.notification-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+}
+.notification-item-icon.warning { background: rgba(245, 158, 11, 0.15); color: #D97706; }
+.notification-item-icon.expense { background: rgba(255, 90, 90, 0.12); color: var(--accent-red); }
+.notification-item-icon.ok { background: rgba(16, 185, 129, 0.12); color: var(--accent-green); }
+.notification-item-icon.info { background: rgba(59, 130, 246, 0.12); color: #3B82F6; }
+.notification-item-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.notification-item-body {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.35;
 }
 .profile-btn {
   display: flex;
@@ -607,6 +682,17 @@ ul { list-style: none; }
 }
 .card-balance .stat-sub {
   color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Account total card — distinct from budget */
+.card-accounts {
+  background: linear-gradient(135deg, #3B82F6, #1D4ED8) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.25) !important;
+}
+[data-theme="dark"] .card-accounts {
+  background: linear-gradient(135deg, #2563EB, #1E40AF) !important;
 }
 
 /* Switch Toggle (Dark Mode) */
@@ -734,11 +820,16 @@ input:checked + .slider:before {
 }
 .dashboard-stat-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   margin-bottom: 20px;
 }
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
+  .dashboard-stat-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
   .dashboard-stat-row {
     grid-template-columns: 1fr;
   }

@@ -26,7 +26,7 @@ public class TransactionsController : ControllerBase
         var query = _db.Transactions
             .Include(t => t.Category)
             .Include(t => t.Account)
-            .Where(t => t.UserId == userId);
+            .Where(t => t.UserId == userId && t.Note != "main-initial-deposit");
 
         if (month.HasValue && year.HasValue)
             query = query.Where(t => t.Date.Month == month && t.Date.Year == year);
@@ -52,6 +52,32 @@ public class TransactionsController : ControllerBase
     {
         var userId = GetUserId();
 
+        if (dto.Type is not ("expense" or "income"))
+            return BadRequest(new { message = "Type must be expense or income." });
+
+        if (dto.Amount <= 0)
+            return BadRequest(new { message = "Amount must be greater than zero." });
+
+        Account? account = null;
+        if (dto.AccountId.HasValue)
+        {
+            account = await _db.Accounts.FirstOrDefaultAsync(a => a.Id == dto.AccountId && a.UserId == userId);
+            if (account == null) return BadRequest(new { message = "Account not found." });
+            if (account.IsMain)
+                return BadRequest(new { message = "Use Transfer from the main savings account instead of regular transactions." });
+
+            if (dto.Type == "expense" && account.Balance < dto.Amount)
+                return BadRequest(new {
+                    message = account.Balance <= 0
+                        ? "Account balance is zero. Add funds or transfer from main account before adding an expense."
+                        : $"Insufficient balance. Available: {account.Balance:0.##}, expense: {dto.Amount:0.##}."
+                });
+        }
+        else if (dto.Type == "expense")
+        {
+            return BadRequest(new { message = "Select an account for expenses." });
+        }
+
         var transaction = new Transaction
         {
             UserId = userId,
@@ -64,13 +90,8 @@ public class TransactionsController : ControllerBase
             AccountId = dto.AccountId
         };
 
-        // Update account balance
-        if (dto.AccountId.HasValue)
-        {
-            var account = await _db.Accounts.FirstOrDefaultAsync(a => a.Id == dto.AccountId && a.UserId == userId);
-            if (account != null)
-                account.Balance += dto.Type == "income" ? dto.Amount : -dto.Amount;
-        }
+        if (account != null)
+            account.Balance += dto.Type == "income" ? dto.Amount : -dto.Amount;
 
         _db.Transactions.Add(transaction);
         await _db.SaveChangesAsync();
@@ -87,7 +108,10 @@ public class TransactionsController : ControllerBase
         var transaction = await _db.Transactions.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
         if (transaction == null) return NotFound();
 
-        // Revert old account balance
+        if (transaction.Type == "transfer")
+            return BadRequest(new { message = "This transaction cannot be edited." });
+
+        // Revert old account balance first
         if (transaction.AccountId.HasValue)
         {
             var oldAccount = await _db.Accounts.FindAsync(transaction.AccountId);
@@ -97,18 +121,35 @@ public class TransactionsController : ControllerBase
 
         if (dto.Title != null) transaction.Title = dto.Title;
         if (dto.Amount.HasValue) transaction.Amount = dto.Amount.Value;
-        if (dto.Type != null) transaction.Type = dto.Type;
+        if (dto.Type != null)
+        {
+            if (dto.Type is not ("expense" or "income"))
+                return BadRequest(new { message = "Type must be expense or income." });
+            transaction.Type = dto.Type;
+        }
         if (dto.Note != null) transaction.Note = dto.Note;
         if (dto.Date.HasValue) transaction.Date = dto.Date.Value;
         if (dto.CategoryId != null) transaction.CategoryId = dto.CategoryId;
         if (dto.AccountId != null) transaction.AccountId = dto.AccountId;
 
-        // Apply new account balance
+        if (transaction.Type == "expense" && !transaction.AccountId.HasValue)
+            return BadRequest(new { message = "Select an account for expenses." });
+
         if (transaction.AccountId.HasValue)
         {
             var newAccount = await _db.Accounts.FindAsync(transaction.AccountId);
-            if (newAccount != null)
-                newAccount.Balance += transaction.Type == "income" ? transaction.Amount : -transaction.Amount;
+            if (newAccount == null) return BadRequest(new { message = "Account not found." });
+            if (newAccount.IsMain)
+                return BadRequest(new { message = "Cannot link transactions to the main savings account." });
+
+            if (transaction.Type == "expense" && newAccount.Balance < transaction.Amount)
+                return BadRequest(new {
+                    message = newAccount.Balance <= 0
+                        ? "Account balance is zero. Add funds or transfer from main account before adding an expense."
+                        : $"Insufficient balance. Available: {newAccount.Balance:0.##}, expense: {transaction.Amount:0.##}."
+                });
+
+            newAccount.Balance += transaction.Type == "income" ? transaction.Amount : -transaction.Amount;
         }
 
         await _db.SaveChangesAsync();
@@ -124,7 +165,10 @@ public class TransactionsController : ControllerBase
         var transaction = await _db.Transactions.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
         if (transaction == null) return NotFound();
 
-        // Revert account balance
+        // Transfer rows: balances were applied in Accounts.Transfer — block direct delete
+        if (transaction.Type == "transfer")
+            return BadRequest(new { message = "Transfer records cannot be deleted directly." });
+
         if (transaction.AccountId.HasValue)
         {
             var account = await _db.Accounts.FindAsync(transaction.AccountId);

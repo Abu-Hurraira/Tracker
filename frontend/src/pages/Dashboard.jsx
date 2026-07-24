@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { reportApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+import toast from 'react-hot-toast';
+import { exportFinanceReport } from '../utils/exportReport';
 import { 
   FiTrendingUp, 
   FiTrendingDown, 
@@ -20,6 +22,7 @@ import TransactionModal from '../components/TransactionModal';
 export default function Dashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [data, setData] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -32,13 +35,30 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [location.key]);
+
+  const handleExport = async () => {
+    const toastId = toast.loading('Preparing your Excel file...');
+    try {
+      const { transactionCount, fileName } = await exportFinanceReport(user);
+      toast.dismiss(toastId);
+      toast.success(
+        transactionCount > 0
+          ? `Exported ${transactionCount} transactions to ${fileName}`
+          : `Exported financial summary to ${fileName}`
+      );
+    } catch (err) {
+      toast.dismiss(toastId);
+      toast.error('Export failed. Please try again.');
+      console.error(err);
+    }
+  };
 
   const sym = user?.currencySymbol || 'Rs';
 
   // Dynamic sparkline generator helpers using actual transaction history
   const getBalanceSparkData = () => {
-    const base = data?.totalBalance || 7350;
+    const base = data?.totalBalance || 0;
     if (!data?.recentTransactions || data.recentTransactions.length === 0) {
       return [
         { value: base * 0.85 },
@@ -52,7 +72,6 @@ export default function Dashboard() {
     }
     let current = base;
     const points = [{ value: current }];
-    // Track balance backwards through recent transactions
     for (const t of data.recentTransactions) {
       if (t.type === 'expense') {
         current += t.amount;
@@ -62,6 +81,19 @@ export default function Dashboard() {
       points.unshift({ value: current });
     }
     return points;
+  };
+
+  const getBudgetSparkData = () => {
+    const remaining = data?.activeBudgetRemaining ?? 0;
+    const total = data?.activeBudgetTotal || 1;
+    const spent = data?.activeBudgetSpent || 0;
+    return [
+      { value: total },
+      { value: total - spent * 0.25 },
+      { value: total - spent * 0.5 },
+      { value: total - spent * 0.75 },
+      { value: remaining }
+    ];
   };
 
   const getExpenseSparkData = () => {
@@ -150,9 +182,9 @@ export default function Dashboard() {
         </button>
       </motion.div>
 
-      {/* 3-Column Stat Cards Row */}
+      {/* Stat Cards: Budget Remaining | Account Balance | Expense | Income */}
       <div className="dashboard-stat-row">
-        {/* TOTAL BALANCE (Purple gradient card) */}
+        {/* BUDGET REMAINING */}
         <motion.div 
           className="card card-balance" 
           initial={{ opacity: 0, y: 20 }} 
@@ -161,36 +193,46 @@ export default function Dashboard() {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8 }}>
-              TOTAL BALANCE
+              BUDGET REMAINING
             </span>
-            <span className="trend-badge positive" style={{ background: '#E6FDF4', color: '#10B981', padding: '4px 10px', fontSize: 12 }}>
-              + 73%
-            </span>
+            {(data?.activeBudgetTotal || 0) > 0 && (
+              <span
+                className="trend-badge"
+                style={{
+                  background: (data?.activeBudgetRemaining || 0) >= 0 ? '#E6FDF4' : 'rgba(255,90,90,0.2)',
+                  color: (data?.activeBudgetRemaining || 0) >= 0 ? '#10B981' : '#FF5A5A',
+                  padding: '4px 10px',
+                  fontSize: 12
+                }}
+              >
+                {(data?.activeBudgetRemaining || 0) >= 0 ? '+' : ''}
+                {Math.round(((data?.activeBudgetRemaining || 0) / (data?.activeBudgetTotal || 1)) * 100)}%
+              </span>
+            )}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 8 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 30, fontWeight: 800, lineHeight: 1.1, marginBottom: 6 }}>
-                {sym}{(data?.totalBalance || 0).toLocaleString()}
+                {sym}{(data?.activeBudgetRemaining || 0).toLocaleString()}
               </div>
               {(data?.activeBudgetTotal || 0) > 0 ? (
                 <div style={{ fontSize: 12, opacity: 0.8 }}>
                   out of <span style={{ fontWeight: 700 }}>{sym}{(data.activeBudgetTotal).toLocaleString()}</span> (budget)
                 </div>
               ) : (
-                <div style={{ fontSize: 12, opacity: 0.8 }}>out of budget limits</div>
+                <div style={{ fontSize: 12, opacity: 0.8 }}>No active budget</div>
               )}
               <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>
-                {data?.accounts?.length || 0} account{data?.accounts?.length !== 1 && 's'}
+                Spent {sym}{(data?.activeBudgetSpent || 0).toLocaleString()}
               </div>
             </div>
 
-            {/* Sparkline chart */}
             <div style={{ width: '110px', height: '45px' }} className="sparkline-wrapper">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={getBalanceSparkData()} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
+                <AreaChart data={getBudgetSparkData()} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
                   <defs>
-                    <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="budgetGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#FFFFFF" stopOpacity={0.4}/>
                       <stop offset="95%" stopColor="#FFFFFF" stopOpacity={0}/>
                     </linearGradient>
@@ -200,7 +242,60 @@ export default function Dashboard() {
                     dataKey="value" 
                     stroke="#FFFFFF" 
                     strokeWidth={2} 
-                    fill="url(#balanceGrad)"
+                    fill="url(#budgetGrad)"
+                    dot={false}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* TOTAL ACCOUNT BALANCE */}
+        <motion.div 
+          className="card card-accounts" 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.03 }}
+          style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: 150 }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8 }}>
+              TOTAL ACCOUNT BALANCE
+            </span>
+            <span className="trend-badge" style={{ background: 'rgba(255,255,255,0.2)', color: '#FFFFFF', padding: '4px 10px', fontSize: 12 }}>
+              {data?.accounts?.length || 0} acct{(data?.accounts?.length || 0) !== 1 ? 's' : ''}
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 8 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 30, fontWeight: 800, lineHeight: 1.1, marginBottom: 6 }}>
+                {sym}{(data?.totalBalance || 0).toLocaleString()}
+              </div>
+              <div style={{ fontSize: 12, opacity: 0.8 }}>
+                Spending accounts only
+              </div>
+              <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>
+                Main savings excluded
+              </div>
+            </div>
+
+            <div style={{ width: '110px', height: '45px' }} className="sparkline-wrapper">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={getBalanceSparkData()} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
+                  <defs>
+                    <linearGradient id="accountGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#FFFFFF" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#FFFFFF" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Area 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke="#FFFFFF" 
+                    strokeWidth={2} 
+                    fill="url(#accountGrad)"
                     dot={false}
                   />
                 </AreaChart>
@@ -248,7 +343,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Sparkline chart */}
               <div style={{ width: '110px', height: '45px' }} className="sparkline-wrapper">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={getExpenseSparkData()} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
@@ -305,13 +399,21 @@ export default function Dashboard() {
                   {sym}{(data?.thisMonth?.income || 0).toLocaleString()}
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                  Net: <span style={{ color: (data?.thisMonth?.net || 0) >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 700 }}>
+                  {data?.thisMonth?.netFromMainTransfers ? 'Main left' : 'Net'}:{' '}
+                  <span style={{ color: (data?.thisMonth?.net || 0) >= 0 ? 'var(--accent-green)' : 'var(--accent-red)', fontWeight: 700 }}>
                     {(data?.thisMonth?.net || 0) >= 0 ? '' : '-'}{sym}{Math.abs(data?.thisMonth?.net || 0).toLocaleString()}
                   </span>
                 </div>
+                {data?.mainAccount?.initialDeposit > 0 && (
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                    Income {sym}{data.mainAccount.initialDeposit.toLocaleString()}
+                    {(data?.thisMonth?.transferredFromMain || 0) > 0
+                      ? ` · transferred ${sym}${data.thisMonth.transferredFromMain.toLocaleString()}`
+                      : ' · transfers update this, not expenses'}
+                  </div>
+                )}
               </div>
 
-              {/* Sparkline chart */}
               <div style={{ width: '110px', height: '45px' }} className="sparkline-wrapper">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={getIncomeSparkData()} margin={{ top: 2, right: 2, left: 2, bottom: 2 }}>
@@ -351,7 +453,39 @@ export default function Dashboard() {
             <div className="section-title" style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Accounts</div>
             <Link to="/app/accounts" style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>View all</Link>
           </div>
-          {data?.accounts?.length === 0 && (
+
+          {data?.mainAccount && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 16px',
+                marginBottom: 12,
+                borderRadius: 16,
+                background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.08))',
+                border: '1px solid rgba(245,158,11,0.35)',
+                cursor: 'pointer'
+              }}
+              onClick={() => navigate('/app/accounts')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(245,158,11,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>
+                  {data.mainAccount.icon || '💎'}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{data.mainAccount.name}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Main savings · not in total</div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontWeight: 800, color: '#D97706' }}>{sym}{(data.mainAccount.balance || 0).toLocaleString()}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Income kept: {sym}{(data.mainAccount.initialDeposit || 0).toLocaleString()}</div>
+              </div>
+            </div>
+          )}
+
+          {data?.accounts?.length === 0 && !data?.mainAccount && (
             <div className="empty-state" style={{ padding: '40px 10px' }}>
               <div className="emoji" style={{ fontSize: 36 }}>🏦</div>
               <p style={{ fontSize: 14 }}>No accounts yet</p>
@@ -438,7 +572,7 @@ export default function Dashboard() {
                     <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       Available Balance
                     </div>
-                    <div style={{ fontWeight: 800, fontSize: 18, color: '#10b981', marginTop: 2 }}>
+                    <div style={{ fontWeight: 800, fontSize: 18, color: (a.balance ?? 0) >= 0 ? '#10b981' : 'var(--accent-red)', marginTop: 2 }}>
                       {sym}{a.balance?.toLocaleString()}
                     </div>
                   </div>
@@ -508,8 +642,8 @@ export default function Dashboard() {
                     <span>{format(new Date(t.date), 'd MMM')}</span>
                   </div>
                 </div>
-                <div style={{ fontWeight: 700, color: t.type === 'expense' ? 'var(--accent-red)' : 'var(--accent-green)', fontSize: 14 }}>
-                  {t.type === 'expense' ? '▼' : '▲'} {sym}{t.amount?.toLocaleString()}
+                <div style={{ fontWeight: 700, color: t.type === 'expense' ? 'var(--accent-red)' : t.type === 'transfer' ? 'var(--accent-orange)' : 'var(--accent-green)', fontSize: 14 }}>
+                  {t.type === 'expense' ? '▼' : t.type === 'transfer' ? '↔' : '▲'} {sym}{t.amount?.toLocaleString()}
                 </div>
               </div>
             ))}
@@ -539,7 +673,7 @@ export default function Dashboard() {
           <Link to="/app/categories" className="btn btn-secondary">
             <FiTag size={16} /> Categories
           </Link>
-          <button className="btn btn-secondary" onClick={() => navigate('/app/summary')}>
+          <button className="btn btn-secondary" onClick={handleExport}>
             <FiDownload size={16} /> Export Report
           </button>
         </div>

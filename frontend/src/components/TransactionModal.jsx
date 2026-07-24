@@ -20,8 +20,9 @@ export default function TransactionModal({ open, onClose, onSaved, editTx }) {
     if (!open) return;
     Promise.all([categoryApi.getAll(), accountApi.getAll()]).then(([cats, accs]) => {
       setCategories(cats.data);
-      setAccounts(accs.data);
-      if (accs.data.length > 0 && !accountId) setAccountId(accs.data[0].id);
+      const usable = (accs.data || []).filter(a => !a.isMain);
+      setAccounts(usable);
+      if (usable.length > 0 && !accountId) setAccountId(usable[0].id);
     });
   }, [open]);
 
@@ -49,6 +50,20 @@ export default function TransactionModal({ open, onClose, onSaved, editTx }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!amount || isNaN(+amount) || +amount <= 0) return toast.error('Enter a valid amount');
+
+    if (type === 'expense') {
+      if (!accountId) return toast.error('Select an account for expenses');
+      const acc = accounts.find(a => String(a.id) === String(accountId));
+      const bal = acc?.balance ?? 0;
+      const value = parseFloat(amount);
+      if (bal <= 0) {
+        return toast.error('Account balance is zero. Add funds or transfer from main first.');
+      }
+      if (value > bal) {
+        return toast.error(`Insufficient balance. Available: Rs${Number(bal).toLocaleString()}`);
+      }
+    }
+
     setLoading(true);
     try {
       const payload = {
@@ -139,13 +154,20 @@ export default function TransactionModal({ open, onClose, onSaved, editTx }) {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Account</label>
-                  <select className="form-input form-select" value={accountId} onChange={e => setAccountId(e.target.value)}>
-                    <option value="">No Account</option>
+                  <label className="form-label">Account {type === 'expense' ? '*' : ''}</label>
+                  <select className="form-input form-select" value={accountId} onChange={e => setAccountId(e.target.value)} required={type === 'expense'}>
+                    <option value="">{type === 'expense' ? 'Select account' : 'No Account'}</option>
                     {accounts.map(a => (
-                      <option key={a.id} value={a.id}>{a.icon} {a.name}</option>
+                      <option key={a.id} value={a.id} disabled={type === 'expense' && (a.balance ?? 0) <= 0}>
+                        {a.icon} {a.name} (Rs{Number(a.balance || 0).toLocaleString()})
+                      </option>
                     ))}
                   </select>
+                  {type === 'expense' && accountId && (accounts.find(a => String(a.id) === String(accountId))?.balance ?? 0) <= 0 && (
+                    <div style={{ fontSize: 12, color: 'var(--accent-red)', marginTop: 6 }}>
+                      This account has no balance. Transfer from main or add income first.
+                    </div>
+                  )}
                 </div>
               </div>
 

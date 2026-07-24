@@ -102,6 +102,37 @@ export default function Summary() {
 
               {/* Stats Row */}
               <div className="summary-cards" style={{ marginBottom: 20 }}>
+                <div className="summary-card" style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))', color: '#fff', border: 'none' }}>
+                  <div className="summary-card-label" style={{ color: 'rgba(255,255,255,0.75)' }}>🎯 Budget Remaining</div>
+                  <div className="summary-card-value" style={{ color: '#fff' }}>
+                    {sym}{(summary?.activeBudgetRemaining || 0).toLocaleString()}
+                  </div>
+                  <div className="summary-card-sub" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                    {(summary?.activeBudgetTotal || 0) > 0
+                      ? `of ${sym}${(summary.activeBudgetTotal).toLocaleString()} · spent ${sym}${(summary.activeBudgetSpent || 0).toLocaleString()}`
+                      : 'No active budget'}
+                  </div>
+                </div>
+                <div className="summary-card" style={{ background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)', color: '#fff', border: 'none' }}>
+                  <div className="summary-card-label" style={{ color: 'rgba(255,255,255,0.75)' }}>🏦 Total Account Balance</div>
+                  <div className="summary-card-value" style={{ color: '#fff' }}>
+                    {sym}{(summary?.totalAccountBalance || 0).toLocaleString()}
+                  </div>
+                  <div className="summary-card-sub" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                    {summary?.accountCount || 0} account{(summary?.accountCount || 0) !== 1 ? 's' : ''} · main excluded
+                  </div>
+                </div>
+                {(summary?.mainAccountInitialDeposit > 0 || summary?.mainAccountBalance > 0) && (
+                  <div className="summary-card" style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: '#fff', border: 'none' }}>
+                    <div className="summary-card-label" style={{ color: 'rgba(255,255,255,0.75)' }}>💎 Main Savings</div>
+                    <div className="summary-card-value" style={{ color: '#fff' }}>
+                      {sym}{(summary?.mainAccountBalance || 0).toLocaleString()}
+                    </div>
+                    <div className="summary-card-sub" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                      Initial income {sym}{(summary?.mainAccountInitialDeposit || 0).toLocaleString()}
+                    </div>
+                  </div>
+                )}
                 <div className="summary-card">
                   <div className="summary-card-label">📉 Expense × {summary?.categoryBreakdown?.reduce((s,c)=>s+c.count,0)||0}</div>
                   <div className="summary-card-value amount-expense">{sym}{(summary?.totalExpense || 0).toLocaleString()}</div>
@@ -109,10 +140,6 @@ export default function Summary() {
                 <div className="summary-card">
                   <div className="summary-card-label">📈 Income</div>
                   <div className="summary-card-value amount-income">{sym}{(summary?.totalIncome || 0).toLocaleString()}</div>
-                </div>
-                <div className="summary-card">
-                  <div className="summary-card-label">📊 Transactions</div>
-                  <div className="summary-card-value">{summary?.transactionCount || 0}</div>
                 </div>
               </div>
 

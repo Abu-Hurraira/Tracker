@@ -176,13 +176,14 @@ export default function Transactions() {
                     <div style={{
                       fontSize: 15,
                       fontWeight: 700,
-                      color: t.type === 'expense' ? 'var(--accent-red)' : 'var(--accent-green)',
+                      color: t.type === 'expense' ? 'var(--accent-red)' : t.type === 'transfer' ? 'var(--accent-orange)' : 'var(--accent-green)',
                       letterSpacing: '-0.3px',
                       textAlign: 'right',
                       minWidth: 70,
                     }}>
-                      {t.type === 'expense' ? '−' : '+'}{sym}{t.amount.toLocaleString()}
+                      {t.type === 'expense' ? '−' : t.type === 'transfer' ? '↔' : '+'}{sym}{t.amount.toLocaleString()}
                     </div>
+                    {t.type !== 'transfer' && t.note !== 'main-initial-deposit' && (
                     <button
                       onClick={e => { e.stopPropagation(); handleDelete(t.id); }}
                       style={{
@@ -203,6 +204,7 @@ export default function Transactions() {
                     >
                       🗑
                     </button>
+                    )}
                   </div>
                 </motion.div>
               ))}

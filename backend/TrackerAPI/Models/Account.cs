@@ -10,10 +10,14 @@ public class Account
     public int UserId { get; set; }
     [Required, MaxLength(100)]
     public string Name { get; set; } = string.Empty;
-    public string Type { get; set; } = "bank"; // bank | cash | card
+    public string Type { get; set; } = "bank"; // bank | cash | card | main
     public string Icon { get; set; } = "🏦";
     public string Color { get; set; } = "#6C63FF";
     public decimal Balance { get; set; } = 0;
+    /// <summary>Savings vault — excluded from Total Account Balance.</summary>
+    public bool IsMain { get; set; } = false;
+    /// <summary>First amount deposited; recorded as income and kept after transfers.</summary>
+    public decimal InitialDeposit { get; set; } = 0;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [ForeignKey("UserId")]

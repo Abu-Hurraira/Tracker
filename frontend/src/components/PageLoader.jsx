@@ -26,6 +26,7 @@ export function DashboardSkeleton() {
         <StatCardSkeleton />
         <StatCardSkeleton />
         <StatCardSkeleton />
+        <StatCardSkeleton />
       </div>
       <div className="dashboard-grid" style={{ marginTop: 20 }}>
         <div className="card skeleton-card" style={{ minHeight: 462 }} />
