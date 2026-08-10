@@ -14,8 +14,13 @@ function readCachedUser() {
 }
 
 function persistUser(user) {
-  if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
-  else localStorage.removeItem(USER_KEY);
+  try {
+    if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
+    else localStorage.removeItem(USER_KEY);
+  } catch {
+    // Ignore quota errors (e.g. large profile pictures) — in-memory auth still works
+    try { localStorage.removeItem(USER_KEY); } catch { /* ignore */ }
+  }
 }
 
 export function AuthProvider({ children }) {
